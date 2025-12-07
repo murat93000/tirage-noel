@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚙️ Administration - Tirage au Sort</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            background: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+        }
+        .card h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .prize-list { margin-top: 20px; }
+        .prize-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: grid;
+            grid-template-columns: 80px 1fr auto;
+            gap: 20px;
+            align-items: center;
+            border-left: 5px solid #3498db;
+        }
+        .prize-color-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            border: 3px solid #ddd;
+        }
+        .prize-info { flex: 1; }
+        .prize-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .prize-description {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        .prize-probability {
+            color: #3498db;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+        .prize-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-success { background: #27ae60; color: white; }
+        .btn-success:hover { background: #229954; }
+        .btn-danger { background: #e74c3c; color: white; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-add {
+            width: 100%;
+            padding: 15px;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        .btn-add:hover {
+            background: #229954;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            color: #2c3e50;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            color: #2c3e50;
+            font-size: 1.8em;
+        }
+        .btn-close {
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #666;
+        }
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .status-online { background: #4caf50; color: white; }
+        .status-offline { background: #ff9800; color: white; }
+        .preview-wheel {
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+            border-radius: 50%;
+            border: 5px solid #ddd;
+        }
+        .total-probability {
+            padding: 15px;
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .total-probability.valid { background: #d4edda; border-color: #28a745; color: #155724; }
+        .total-probability.invalid { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-box {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            color: white;
+        }
+        .stat-number {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .stat-label {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: #3498db;
+            color: white;
+            font-weight: bold;
+        }
+        tr:hover { background: #f8f9fa; }
+        .badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        .badge-success { background: #27ae60; color: white; }
+        .badge-warning { background: #f39c12; color: white; }
+    </style>
+</head>
+<body>
+    <div id="statusIndicator" class="status-indicator status-offline">🔴 Initialisation...</div>
+    <div class="container">
+        <div class="header">
+            <h1>⚙️ Administration - Tirage au Sort</h1>
+            <div style="color: #666; margin-top: 10px;">Optic 2000 / BLINK - Sevran</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" onclick="switchTab('lots')">🎁 Gestion des Lots</button>
+            <button class="tab-button" onclick="switchTab('stats')">📊 Statistiques</button>
+            <button class="tab-button" onclick="switchTab('participations')">👥 Participations</button>
+        </div>
+
+        <!-- Tab: Gestion des Lots -->
+        <div id="lots" class="tab-content active">
+            <div class="card">
+                <h2>🎁 Configuration des Lots</h2>
+                <button class="btn-add" onclick="openPrizeModal()">➕ Ajouter un Nouveau Lot</button>
+                <div id="totalProbability" class="total-probability"></div>
+                <div class="prize-list" id="prizesList"></div>
+            </div>
+            <div class="card">
+                <h2>👁️ Prévisualisation de la Roue</h2>
+                <canvas id="previewWheel" class="preview-wheel" width="300" height="300"></canvas>
+            </div>
+        </div>
+
+        <!-- Tab: Statistiques -->
+        <div id="stats" class="tab-content">
+            <div class="card">
+                <h2>📊 Statistiques Globales</h2>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalParticipations">0</div>
+                        <div class="stat-label">Total Participations</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalUsed">0</div>
+                        <div class="stat-label">Lots Récupérés</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="totalPending">0</div>
+                        <div class="stat-label">En Attente</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="conversionRate">0%</div>
+                        <div class="stat-label">Taux de Conversion</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <h2>🎁 Répartition des Lots Gagnés</h2>
+                <div id="prizesDistribution"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Participations -->
+        <div id="participations" class="tab-content">
+            <div class="card">
+                <h2>👥 Liste des Participations</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Prénom</th>
+                                <th>Téléphone</th>
+                                <th>Lot Gagné</th>
+                                <th>Code</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participationsBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Ajout/Edit Lot -->
+    <div id="prizeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">➕ Ajouter un Lot</h3>
+                <button class="btn-close" onclick="closePrizeModal()">×</button>
+            </div>
+            <form id="prizeForm" onsubmit="savePrize(event)">
+                <div class="form-group">
+                    <label>Nom du Lot *</label>
+                    <input type="text" id="prizeName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="prizeDescription" rows="3" required></textarea>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Probabilité (%) *</label>
+                        <input type="number" id="prizeProbability" min="1" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Couleur *</label>
+                        <input type="color" id="prizeColor" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Emoji / Icône *</label>
+                    <input type="text" id="prizeEmoji" placeholder="🎁" maxlength="2" required>
+                </div>
+                <button type="submit" class="btn btn-success" style="width: 100%; padding: 15px; font-size: 1.2em;">
+                    💾 Sauvegarder
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjLckAEhFD8UFKvbFR_YCLbWLgtU-GoFU",
+            authDomain: "tirage-noel-optic.firebaseapp.com",
+            projectId: "tirage-noel-optic",
+            storageBucket: "tirage-noel-optic.firebasestorage.app",
+            messagingSenderId: "860394494748",
+            appId: "1:860394494748:web:86610ca90199cab89b78d9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        updateConnectionStatus(true);
+
+        let prizes = [];
+        let editingPrizeId = null;
+
+        window.switchTab = function(tabName) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+
+            if (tabName === 'stats') loadStatistics();
+            if (tabName === 'participations') loadParticipations();
+        };
+
+        window.openPrizeModal = function(prizeId = null) {
+            editingPrizeId = prizeId;
+            const modal = document.getElementById('prizeModal');
+            const title = document.getElementById('modalTitle');
+            
+            if (prizeId) {
+                title.textContent = '✏️ Modifier le Lot';
+                const prize = prizes.find(p => p.id === prizeId);
+                if (prize) {
+                    document.getElementById('prizeName').value = prize.name;
+                    document.getElementById('prizeDescription').value = prize.description;
+                    document.getElementById('prizeProbability').value = prize.probability;
+                    document.getElementById('prizeColor').value = prize.color;
+                    document.getElementById('prizeEmoji').value = prize.emoji;
+                }
+            } else {
+                title.textContent = '➕ Ajouter un Lot';
+                document.getElementById('prizeForm').reset();
+            }
+            
+            modal.classList.add('active');
+        };
+
+        window.closePrizeModal = function() {
+            document.getElementById('prizeModal').classList.remove('active');
+            editingPrizeId = null;
+        };
+
+        window.savePrize = async function(event) {
+            event.preventDefault();
+            
+            const prizeData = {
+                name: document.getElementById('prizeName').value,
+                description: document.getElementById('prizeDescription').value,
+                probability: parseInt(document.getElementById('prizeProbability').value),
+                color: document.getElementById('prizeColor').value,
+                emoji: document.getElementById('prizeEmoji').value
+            };
+
+            try {
+                const prizeId = editingPrizeId || Date.now().toString();
+                await setDoc(doc(db, 'prizes', prizeId), prizeData);
+                
+                alert('✅ Lot sauvegardé avec succès !');
+                closePrizeModal();
+                loadPrizes();
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('❌ Erreur lors de la sauvegarde : ' + error.message);
+            }
+        };
+
+        window.deletePrize = async function(prizeId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce lot ?')) return;
+            
+            try {
+                await deleteDoc(doc(db, 'prizes', prizeId));
+                alert('✅ Lot supprimé !');
+                loadPrizes();
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('❌ Erreur lors de la suppression');
+            }
+        };
+
+        async function loadPrizes() {
+            try {
+                const snapshot = await getDocs(collection(db, 'prizes'));
+                prizes = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // S'il n'y a pas de lots, créer les lots par défaut
+                if (prizes.length === 0) {
+                    await createDefaultPrizes();
+                    return;
+                }
+
+                displayPrizes();
+                drawPreviewWheel();
+                updateTotalProbability();
+            } catch (error) {
+                console.error('Erreur chargement lots:', error);
+            }
+        }
+
+        async function createDefaultPrizes() {
+            const defaultPrizes = [
+                { name: "Petit Cadeau", description: "Un petit cadeau surprise !", probability: 15, color: "#ff6b6b", emoji: "🎁" },
+                { name: "Bon 30€", description: "Bon d'achat 30€ pour lunettes de soleil", probability: 35, color: "#4ecdc4", emoji: "🕶️" },
+                { name: "Bon 50€", description: "Bon d'achat 50€ pour lunettes optiques", probability: 50, color: "#ffd93d", emoji: "👓" }
+            ];
+
+            for (const prize of defaultPrizes) {
+                await setDoc(doc(db, 'prizes', Date.now().toString() + Math.random()), prize);
+            }
+
+            loadPrizes();
+        }
+
+        function displayPrizes() {
+            const container = document.getElementById('prizesList');
+            container.innerHTML = '';
+
+            prizes.forEach(prize => {
+                const item = document.createElement('div');
+                item.className = 'prize-item';
+                item.innerHTML = `
+                    <div class="prize-color-preview" style="background: ${prize.color}; display: flex; align-items: center; justify-content: center; font-size: 2em;">
+                        ${prize.emoji}
+                    </div>
+                    <div class="prize-info">
+                        <div class="prize-name">${prize.name}</div>
+                        <div class="prize-description">${prize.description}</div>
+                        <div class="prize-probability">Probabilité : ${prize.probability}%</div>
+                    </div>
+                    <div class="prize-actions">
+                        <button class="btn btn-primary" onclick="openPrizeModal('${prize.id}')">✏️</button>
+                        <button class="btn btn-danger" onclick="deletePrize('${prize.id}')">🗑️</button>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function updateTotalProbability() {
+            const total = prizes.reduce((sum, p) => sum + p.probability, 0);
+            const container = document.getElementById('totalProbability');
+            
+            let className = 'total-probability';
+            let message = `Total des probabilités : ${total}%`;
+            
+            if (total === 100) {
+                className += ' valid';
+                message += ' ✅';
+            } else if (total < 100) {
+                className += ' invalid';
+                message += ` ⚠️ Il manque ${100 - total}%`;
+            } else {
+                className += ' invalid';
+                message += ` ⚠️ Dépassement de ${total - 100}%`;
+            }
+            
+            container.className = className;
+            container.textContent = message;
+        }
+
+        function drawPreviewWheel() {
+            const canvas = document.getElementById('previewWheel');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 10;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let currentAngle = 0;
+
+            prizes.forEach(prize => {
+                const sliceAngle = (prize.probability / 100) * 2 * Math.PI;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = prize.color;
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(currentAngle + sliceAngle / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText(prize.emoji, radius / 2, 5);
+                ctx.restore();
+
+                currentAngle += sliceAngle;
+            });
+        }
+
+        async function loadStatistics() {
+            try {
+                const snapshot = await getDocs(collection(db, 'participations'));
+                const data = snapshot.docs.map(doc => doc.data());
+
+                const total = data.length;
+                const used = data.filter(p => p.used).length;
+                const pending = total - used;
+                const conversionRate = total > 0 ? Math.round((used / total) * 100) : 0;
+
+                document.getElementById('totalParticipations').textContent = total;
+                document.getElementById('totalUsed').textContent = used;
+                document.getElementById('totalPending').textContent = pending;
+                document.getElementById('conversionRate').textContent = conversionRate + '%';
+
+                // Répartition des lots
+                const prizeCount = {};
+                data.forEach(p => {
+                    prizeCount[p.prize] = (prizeCount[p.prize] || 0) + 1;
+                });
+
+                const container = document.getElementById('prizesDistribution');
+                container.innerHTML = '';
+
+                Object.entries(prizeCount).forEach(([prize, count]) => {
+                    const percentage = ((count / total) * 100).toFixed(1);
+                    const bar = document.createElement('div');
+                    bar.style.marginBottom = '15px';
+                    bar.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <strong>${prize}</strong>
+                            <span>${count} (${percentage}%)</span>
+                        </div>
+                        <div style="background: #ddd; height: 30px; border-radius: 5px; overflow: hidden;">
+                            <div style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); height: 100%; width: ${percentage}%; transition: width 0.5s;"></div>
+                        </div>
+                    `;
+                    container.appendChild(bar);
+                });
+            } catch (error) {
+                console.error('Erreur stats:', error);
+            }
+        }
+
+        async function loadParticipations() {
+            try {
+                const snapshot = await getDocs(collection(db, 'participations'));
+                const data = snapshot.docs.map(doc => doc.data());
+
+                const tbody = document.getElementById('participationsBody');
+                tbody.innerHTML = '';
+
+                data.reverse().forEach(p => {
+                    const row = document.createElement('tr');
+                    const createdAt = p.createdAt?.toDate ? p.createdAt.toDate() : new Date(p.createdAt);
+                    row.innerHTML = `
+                        <td>${createdAt.toLocaleDateString('fr-FR')} ${createdAt.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}</td>
+                        <td>${p.prenom}</td>
+                        <td>${p.telephone}</td>
+                        <td>${p.prize}</td>
+                        <td style="font-family: monospace; font-weight: bold;">${p.code}</td>
+                        <td>
+                            <span class="badge ${p.used ? 'badge-success' : 'badge-warning'}">
+                                ${p.used ? '✅ Récupéré' : '⏳ En attente'}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Erreur participations:', error);
+            }
+        }
+
+        function updateConnectionStatus(isOnline) {
+            const indicator = document.getElementById('statusIndicator');
+            if (isOnline) {
+                indicator.className = 'status-indicator status-online';
+                indicator.innerHTML = '🟢 Connecté';
+            } else {
+                indicator.className = 'status-indicator status-offline';
+                indicator.innerHTML = '🔴 Hors ligne';
+            }
+        }
+
+        // Initialisation
+        loadPrizes();
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 Tirage au Sort Noël - Optic 2000/BLINK</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #8b0000 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            border-radius: 30px;
+            padding: 50px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+        h1 {
+            color: #8b0000;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #1a472a;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 50px;
+        }
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+        .app-card {
+            background: linear-gradient(135deg, #f4e5a1 0%, #d4af37 100%);
+            padding: 30px;
+            border-radius: 20px;
+            border: 3px solid #8b0000;
+            text-decoration: none;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        .app-icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+        .app-title {
+            color: #8b0000;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .app-description {
+            color: #1a472a;
+            font-size: 1em;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 30px; }
+            h1 { font-size: 2em; }
+            .apps-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎄 Grand Tirage de Noël 🎁</h1>
+        <div class="subtitle">Optic 2000 / BLINK - Sevran</div>
+        
+        <div class="apps-grid">
+            <a href="roue-fortune.html" class="app-card">
+                <div class="app-icon">🎰</div>
+                <div class="app-title">Roue de la Fortune</div>
+                <div class="app-description">Pour la tablette de prospection</div>
+            </a>
+            
+            <a href="validation.html" class="app-card">
+                <div class="app-icon">✅</div>
+                <div class="app-title">Validation des Codes</div>
+                <div class="app-description">Pour le PC du magasin</div>
+            </a>
+            
+            <a href="admin.html" class="app-card">
+                <div class="app-icon">⚙️</div>
+                <div class="app-title">Administration</div>
+                <div class="app-description">Gestion des lots et statistiques</div>
+            </a>
+        </div>
+        
+        <p style="margin-top: 50px; color: #666; font-size: 0.9em;">
+            Décembre 2024 - Optic 2000 / BLINK Sevran
+        </p>
+    </div>
+</body>
+</html>

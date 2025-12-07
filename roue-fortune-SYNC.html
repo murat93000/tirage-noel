@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎄 Tirage au Sort - Optic 2000/BLINK</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a472a 0%, #8b0000 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .snowflake {
+            position: absolute;
+            top: -10px;
+            color: white;
+            font-size: 1.5em;
+            opacity: 0.8;
+            animation: fall linear infinite;
+            z-index: 1;
+        }
+        @keyframes fall { to { transform: translateY(100vh); } }
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 10;
+        }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 {
+            color: #8b0000;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header .subtitle {
+            color: #1a472a;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .form-screen { display: block; }
+        .form-group { margin-bottom: 25px; }
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1em;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 15px;
+            border: 3px solid #d4af37;
+            border-radius: 10px;
+            font-size: 1.1em;
+            transition: all 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #8b0000;
+            box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 20px;
+            background: linear-gradient(135deg, #8b0000 0%, #c41e3a 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(139, 0, 0, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 0, 0, 0.4);
+        }
+        .wheel-screen { display: none; text-align: center; }
+        .wheel-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 30px auto;
+        }
+        #wheelCanvas {
+            width: 100%;
+            height: 100%;
+            transform: rotate(0deg);
+            transition: transform 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+        .wheel-pointer {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 20px solid transparent;
+            border-right: 20px solid transparent;
+            border-top: 40px solid #d4af37;
+            z-index: 20;
+            filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+        }
+        .wheel-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #d4af37 0%, #f4e5a1 100%);
+            border-radius: 50%;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2em;
+        }
+        .btn-spin {
+            padding: 20px 50px;
+            background: linear-gradient(135deg, #1a472a 0%, #2d7a4a 100%);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.5em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(26, 71, 42, 0.3);
+        }
+        .btn-spin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(26, 71, 42, 0.4);
+        }
+        .btn-spin:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .prize-screen { display: none; text-align: center; }
+        .prize-animation {
+            font-size: 5em;
+            animation: bounce 1s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        .prize-title {
+            color: #8b0000;
+            font-size: 2em;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .prize-description {
+            color: #1a472a;
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+        .code-container {
+            background: linear-gradient(135deg, #f4e5a1 0%, #d4af37 100%);
+            padding: 30px;
+            border-radius: 20px;
+            margin: 30px 0;
+            border: 5px solid #8b0000;
+        }
+        .code-label {
+            color: #8b0000;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .code-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #1a472a;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 5px;
+            margin: 15px 0;
+        }
+        #qrcodeContainer {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .instruction {
+            background: #fff3cd;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px solid #d4af37;
+            margin: 20px 0;
+            font-size: 1.1em;
+            color: #333;
+        }
+        .instruction strong { color: #8b0000; }
+        .btn-new {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #1a472a 0%, #2d7a4a 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+        .btn-new:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(26, 71, 42, 0.3);
+        }
+        .status-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .status-online { background: #4caf50; color: white; }
+        .status-offline { background: #ff9800; color: white; }
+        .error-message {
+            background: #ff5252;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            .container { padding: 20px; }
+            .header h1 { font-size: 2em; }
+            .wheel-container { width: 300px; height: 300px; }
+            .code-display { font-size: 1.8em; }
+        }
+    </style>
+</head>
+<body>
+    <div id="snowflakes"></div>
+    <div id="statusIndicator" class="status-indicator status-offline">🔴 Chargement...</div>
+    <div class="container">
+        <div class="header">
+            <h1>🎄 Grand Tirage de Noël 🎁</h1>
+            <div class="subtitle">Optic 2000 / BLINK - Sevran</div>
+        </div>
+        <div id="formScreen" class="form-screen">
+            <div class="form-group">
+                <label>👤 Prénom *</label>
+                <input type="text" id="prenom" placeholder="Entrez votre prénom" required>
+            </div>
+            <div class="form-group">
+                <label>📱 Téléphone *</label>
+                <input type="tel" id="telephone" placeholder="06 12 34 56 78" required>
+            </div>
+            <div class="form-group">
+                <label>📧 Email (optionnel)</label>
+                <input type="email" id="email" placeholder="votre@email.com">
+            </div>
+            <div class="error-message" id="errorMessage"></div>
+            <button class="btn-primary" onclick="validateAndShowWheel()">🎁 PARTICIPER AU TIRAGE 🎁</button>
+        </div>
+        <div id="wheelScreen" class="wheel-screen">
+            <h2 style="color: #8b0000; margin-bottom: 20px;">🎰 Tournez la roue ! 🎰</h2>
+            <div class="wheel-container">
+                <div class="wheel-pointer"></div>
+                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                <div class="wheel-center">🎄</div>
+            </div>
+            <button class="btn-spin" id="spinButton" onclick="spinWheel()">LANCER LA ROUE !</button>
+        </div>
+        <div id="prizeScreen" class="prize-screen">
+            <div class="prize-animation">🎉</div>
+            <div class="prize-title">FÉLICITATIONS !</div>
+            <div class="prize-description" id="prizeDescription"></div>
+            <div class="code-container">
+                <div class="code-label">🎫 VOTRE CODE GAGNANT :</div>
+                <div class="code-display" id="codeDisplay"></div>
+                <div id="qrcodeContainer"></div>
+            </div>
+            <div class="instruction">
+                📸 <strong>Prenez en photo ce code</strong> et présentez-vous au magasin <strong>Optic 2000 ou BLINK à Sevran</strong> pour récupérer votre lot !<br>
+                ⏰ <strong>Valable jusqu'au 31 janvier 2025</strong>
+            </div>
+            <button class="btn-new" onclick="newParticipation()">➡️ NOUVEAU PARTICIPANT</button>
+        </div>
+    </div>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, query, where, getDocs, addDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDjLckAEhFD8UFKvbFR_YCLbWLgtU-GoFU",
+            authDomain: "tirage-noel-optic.firebaseapp.com",
+            projectId: "tirage-noel-optic",
+            storageBucket: "tirage-noel-optic.firebasestorage.app",
+            messagingSenderId: "860394494748",
+            appId: "1:860394494748:web:86610ca90199cab89b78d9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        
+        let prizes = [];
+        let currentUser = null;
+        let isSpinning = false;
+
+        // Charger les lots depuis Firebase
+        async function loadPrizes() {
+            try {
+                const snapshot = await getDocs(collection(db, 'prizes'));
+                prizes = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                console.log('✅ Lots chargés:', prizes.length);
+                
+                if (prizes.length === 0) {
+                    showError("⚠️ Aucun lot configuré. Veuillez contacter l'administrateur.");
+                    return false;
+                }
+
+                // Vérifier que le total fait 100%
+                const total = prizes.reduce((sum, p) => sum + p.probability, 0);
+                if (total !== 100) {
+                    console.warn('⚠️ Total des probabilités:', total + '%');
+                }
+
+                updateConnectionStatus(true);
+                return true;
+            } catch (error) {
+                console.error('❌ Erreur chargement lots:', error);
+                showError("Erreur de chargement. Vérifiez votre connexion.");
+                return false;
+            }
+        }
+
+        function createSnowflakes() {
+            const container = document.getElementById('snowflakes');
+            for (let i = 0; i < 30; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = '❄';
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                snowflake.style.animationDelay = Math.random() * 5 + 's';
+                snowflake.style.fontSize = (Math.random() * 1 + 0.5) + 'em';
+                container.appendChild(snowflake);
+            }
+        }
+
+        function drawWheel() {
+            const canvas = document.getElementById('wheelCanvas');
+            const ctx = canvas.getContext('2d');
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const radius = canvas.width / 2 - 10;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let currentAngle = 0;
+
+            prizes.forEach(prize => {
+                const sliceAngle = (prize.probability / 100) * 2 * Math.PI;
+                
+                ctx.beginPath();
+                ctx.moveTo(centerX, centerY);
+                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.closePath();
+                ctx.fillStyle = prize.color;
+                ctx.fill();
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 3;
+                ctx.stroke();
+
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(currentAngle + sliceAngle / 2);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText(prize.emoji, radius / 2, 10);
+                ctx.font = 'bold 14px Arial';
+                ctx.fillText(prize.name, radius / 2, -15);
+                ctx.restore();
+
+                currentAngle += sliceAngle;
+            });
+        }
+
+        window.validateAndShowWheel = async function() {
+            const prenom = document.getElementById('prenom').value.trim();
+            const telephone = document.getElementById('telephone').value.trim();
+            const email = document.getElementById('email').value.trim();
+
+            if (!prenom || !telephone) {
+                showError("Veuillez remplir tous les champs obligatoires !");
+                return;
+            }
+
+            try {
+                const q = query(collection(db, 'participations'), where('telephone', '==', telephone));
+                const snapshot = await getDocs(q);
+                
+                if (!snapshot.empty) {
+                    showError("Ce numéro de téléphone a déjà participé ce mois-ci !");
+                    return;
+                }
+
+                currentUser = { prenom, telephone, email, timestamp: new Date().toISOString() };
+                document.getElementById('formScreen').style.display = 'none';
+                document.getElementById('wheelScreen').style.display = 'block';
+                drawWheel();
+            } catch (error) {
+                console.error("Erreur:", error);
+                showError("Erreur de connexion. Vérifiez votre internet.");
+            }
+        };
+
+        window.spinWheel = function() {
+            if (isSpinning) return;
+            isSpinning = true;
+
+            const spinButton = document.getElementById('spinButton');
+            spinButton.disabled = true;
+            spinButton.textContent = "LA ROUE TOURNE...";
+
+            const selectedPrize = selectPrizeByProbability();
+            const totalRotation = (5 * 360) + (360 - getPrizeAngle(selectedPrize)) + Math.random() * 360;
+            document.getElementById('wheelCanvas').style.transform = `rotate(${totalRotation}deg)`;
+            setTimeout(() => showPrize(selectedPrize), 4000);
+        };
+
+        function selectPrizeByProbability() {
+            const random = Math.random() * 100;
+            let cumulative = 0;
+            for (let prize of prizes) {
+                cumulative += prize.probability;
+                if (random <= cumulative) return prize;
+            }
+            return prizes[prizes.length - 1];
+        }
+
+        function getPrizeAngle(selectedPrize) {
+            let angle = 0;
+            for (let prize of prizes) {
+                if (prize.id === selectedPrize.id) {
+                    angle += (prize.probability / 100) * 360 / 2;
+                    break;
+                }
+                angle += (prize.probability / 100) * 360;
+            }
+            return angle;
+        }
+
+        async function showPrize(prize) {
+            const code = `NOEL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+            try {
+                await addDoc(collection(db, 'participations'), {
+                    ...currentUser,
+                    prize: prize.name,
+                    prizeDescription: prize.description,
+                    code: code,
+                    used: false,
+                    createdAt: Timestamp.now()
+                });
+                console.log("✅ Participation enregistrée");
+            } catch (error) {
+                console.error("❌ Erreur sauvegarde:", error);
+            }
+
+            document.getElementById('wheelScreen').style.display = 'none';
+            document.getElementById('prizeScreen').style.display = 'block';
+            document.getElementById('prizeDescription').textContent = prize.emoji + " " + prize.description;
+            document.getElementById('codeDisplay').textContent = code;
+
+            const script = document.createElement('script');
+            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+            script.onload = () => {
+                document.getElementById('qrcodeContainer').innerHTML = '';
+                new QRCode(document.getElementById('qrcodeContainer'), {
+                    text: code,
+                    width: 200,
+                    height: 200,
+                    colorDark: "#8b0000",
+                    colorLight: "#ffffff"
+                });
+            };
+            document.head.appendChild(script);
+        }
+
+        window.newParticipation = function() {
+            document.getElementById('prizeScreen').style.display = 'none';
+            document.getElementById('formScreen').style.display = 'block';
+            document.getElementById('prenom').value = '';
+            document.getElementById('telephone').value = '';
+            document.getElementById('email').value = '';
+            isSpinning = false;
+
+            const canvas = document.getElementById('wheelCanvas');
+            canvas.style.transform = 'rotate(0deg)';
+            canvas.style.transition = 'none';
+            setTimeout(() => {
+                canvas.style.transition = 'transform 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+            }, 100);
+
+            const spinButton = document.getElementById('spinButton');
+            spinButton.disabled = false;
+            spinButton.textContent = "LANCER LA ROUE !";
+        };
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function updateConnectionStatus(isOnline) {
+            const indicator = document.getElementById('statusIndicator');
+            if (isOnline) {
+                indicator.className = 'status-indicator status-online';
+                indicator.innerHTML = '🟢 Connecté';
+            } else {
+                indicator.className = 'status-indicator status-offline';
+                indicator.innerHTML = '🟠 Hors ligne';
+            }
+        }
+
+        // Initialisation
+        window.onload = async function() {
+            createSnowflakes();
+            const lotsLoaded = await loadPrizes();
+            if (lotsLoaded) {
+                drawWheel();
+            }
+        };
+    </script>
+</body>
+</html>
