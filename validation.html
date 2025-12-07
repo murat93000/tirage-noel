@@ -44,6 +44,27 @@
             border-bottom: 3px solid #d4af37;
             padding-bottom: 10px;
         }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-button {
+            flex: 1;
+            padding: 15px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .tab-button.active {
+            background: linear-gradient(135deg, #1a472a 0%, #2d7a4a 100%);
+            color: white;
+            border-color: #1a472a;
+        }
         .input-group { margin-bottom: 20px; }
         .input-group label {
             display: block;
@@ -66,6 +87,10 @@
             outline: none;
             border-color: #8b0000;
             box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
+        }
+        .input-tel {
+            font-family: 'Arial', sans-serif !important;
+            letter-spacing: normal !important;
         }
         .btn-validate {
             width: 100%;
@@ -177,6 +202,17 @@
         }
         .status-online { background: #4caf50; color: white; }
         .status-offline { background: #ff9800; color: white; }
+        .participation-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            margin-bottom: 15px;
+        }
+        .participation-card h4 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
         @media (max-width: 968px) {
             .stats-grid { grid-template-columns: 1fr; }
         }
@@ -190,20 +226,51 @@
             <div class="subtitle">Optic 2000 / BLINK - Sevran - Caisse</div>
         </div>
         <div class="card">
-            <h2>🔍 Valider un Code</h2>
-            <div class="input-group">
-                <label>Saisir le code :</label>
-                <input 
-                    type="text" 
-                    id="codeInput" 
-                    placeholder="NOEL-XXXXXX-XXXX"
-                    onkeypress="handleKeyPress(event)"
-                >
+            <h2>🔍 Rechercher</h2>
+            <div class="tabs">
+                <button class="tab-button active" onclick="switchSearchMode('code')">
+                    🎫 Par Code
+                </button>
+                <button class="tab-button" onclick="switchSearchMode('phone')">
+                    📱 Par Téléphone
+                </button>
             </div>
-            <button class="btn-validate" onclick="validateCode()">
-                ✅ VALIDER LE CODE
-            </button>
+            
+            <!-- Recherche par code -->
+            <div id="searchByCode">
+                <div class="input-group">
+                    <label>Saisir le code :</label>
+                    <input 
+                        type="text" 
+                        id="codeInput" 
+                        placeholder="NOEL-XXXXXX-XXXX"
+                        onkeypress="handleKeyPress(event, 'code')"
+                    >
+                </div>
+                <button class="btn-validate" onclick="validateByCode()">
+                    ✅ VALIDER LE CODE
+                </button>
+            </div>
+
+            <!-- Recherche par téléphone -->
+            <div id="searchByPhone" style="display: none;">
+                <div class="input-group">
+                    <label>Saisir le numéro de téléphone :</label>
+                    <input 
+                        type="tel" 
+                        id="phoneInput" 
+                        class="input-tel"
+                        placeholder="06 12 34 56 78"
+                        onkeypress="handleKeyPress(event, 'phone')"
+                    >
+                </div>
+                <button class="btn-validate" onclick="validateByPhone()">
+                    🔍 RECHERCHER
+                </button>
+            </div>
+
             <div id="resultBox" class="result-box"></div>
+            <div id="phoneResults" style="margin-top: 30px;"></div>
         </div>
         <div class="card">
             <h2>📊 Statistiques du Jour</h2>
@@ -245,13 +312,32 @@
         updateConnectionStatus(true);
         loadStatistics();
 
-        window.handleKeyPress = function(event) {
+        window.switchSearchMode = function(mode) {
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (mode === 'code') {
+                document.getElementById('searchByCode').style.display = 'block';
+                document.getElementById('searchByPhone').style.display = 'none';
+                document.getElementById('codeInput').focus();
+            } else {
+                document.getElementById('searchByCode').style.display = 'none';
+                document.getElementById('searchByPhone').style.display = 'block';
+                document.getElementById('phoneInput').focus();
+            }
+
+            document.getElementById('resultBox').style.display = 'none';
+            document.getElementById('phoneResults').innerHTML = '';
+        };
+
+        window.handleKeyPress = function(event, type) {
             if (event.key === 'Enter') {
-                validateCode();
+                if (type === 'code') validateByCode();
+                else validateByPhone();
             }
         };
 
-        window.validateCode = async function() {
+        window.validateByCode = async function() {
             const code = document.getElementById('codeInput').value.trim().toUpperCase();
 
             if (!code) {
@@ -291,8 +377,77 @@
             }
         };
 
+        window.validateByPhone = async function() {
+            const phone = document.getElementById('phoneInput').value.trim();
+
+            if (!phone) {
+                alert('Veuillez saisir un numéro de téléphone !');
+                return;
+            }
+
+            try {
+                const q = query(collection(db, 'participations'), where('telephone', '==', phone));
+                const snapshot = await getDocs(q);
+
+                document.getElementById('resultBox').style.display = 'none';
+                const resultsContainer = document.getElementById('phoneResults');
+                resultsContainer.innerHTML = '';
+
+                if (snapshot.empty) {
+                    resultsContainer.innerHTML = `
+                        <div class="result-box result-invalid" style="display: block;">
+                            <h3>Aucune participation trouvée</h3>
+                            <p style="font-size: 1.2em; margin-top: 15px;">
+                                Ce numéro de téléphone n'a pas encore participé au tirage.
+                            </p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const participations = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                resultsContainer.innerHTML = `
+                    <h3 style="color: #2c3e50; margin-bottom: 20px;">
+                        ${participations.length} participation(s) trouvée(s) pour ce numéro
+                    </h3>
+                `;
+
+                participations.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'participation-card';
+                    card.innerHTML = `
+                        <h4>${p.prenom} - ${p.telephone}</h4>
+                        <div style="margin: 10px 0;">
+                            <strong>Lot gagné :</strong> ${p.prize}<br>
+                            <strong>Code :</strong> <span style="font-family: monospace; font-size: 1.2em; color: #e74c3c;">${p.code}</span><br>
+                            <strong>Date :</strong> ${formatDate(p.createdAt)}<br>
+                            <strong>Statut :</strong> 
+                            <span style="color: ${p.used ? '#28a745' : '#f39c12'}; font-weight: bold;">
+                                ${p.used ? '✅ Récupéré le ' + formatDate(p.usedAt) : '⏳ En attente'}
+                            </span>
+                        </div>
+                        ${!p.used ? `
+                            <button class="btn-confirm" onclick="confirmUsage('${p.id}')">
+                                ✅ CONFIRMER LA REMISE DU LOT
+                            </button>
+                        ` : ''}
+                    `;
+                    resultsContainer.appendChild(card);
+                });
+
+            } catch (error) {
+                console.error("Erreur recherche:", error);
+                alert("Erreur lors de la recherche : " + error.message);
+            }
+        };
+
         function showResult(type, title, message, data = null, docId = null) {
             const resultBox = document.getElementById('resultBox');
+            document.getElementById('phoneResults').innerHTML = '';
             resultBox.className = `result-box result-${type}`;
             
             let html = `<h3>${title}</h3>`;
@@ -337,7 +492,9 @@
 
                 setTimeout(() => {
                     document.getElementById('codeInput').value = '';
+                    document.getElementById('phoneInput').value = '';
                     document.getElementById('resultBox').style.display = 'none';
+                    document.getElementById('phoneResults').innerHTML = '';
                     loadStatistics();
                 }, 3000);
 
