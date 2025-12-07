@@ -1,3 +1,4 @@
+v2
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -67,6 +68,26 @@
         .app-description {
             color: #1a472a;
             font-size: 1em;
+            line-height: 1.5;
+        }
+        .badge {
+            background: #e74c3c;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .new-feature {
+            background: #27ae60;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
         }
         @media (max-width: 768px) {
             .container { padding: 30px; }
@@ -83,25 +104,34 @@
         <div class="apps-grid">
             <a href="roue-fortune.html" class="app-card">
                 <div class="app-icon">🎰</div>
-                <div class="app-title">Roue de la Fortune</div>
-                <div class="app-description">Pour la tablette de prospection</div>
+                <div class="app-title">Roue de la Fortune <span class="badge">V2</span></div>
+                <div class="app-description">
+                    Pour la tablette de prospection
+                    <div class="new-feature">🆕 Roue à 24 cases</div>
+                </div>
             </a>
             
             <a href="validation.html" class="app-card">
                 <div class="app-icon">✅</div>
-                <div class="app-title">Validation des Codes</div>
-                <div class="app-description">Pour le PC du magasin</div>
+                <div class="app-title">Validation des Codes <span class="badge">V2</span></div>
+                <div class="app-description">
+                    Pour le PC du magasin
+                    <div class="new-feature">🆕 Recherche par téléphone</div>
+                </div>
             </a>
             
             <a href="admin.html" class="app-card">
                 <div class="app-icon">⚙️</div>
-                <div class="app-title">Administration</div>
-                <div class="app-description">Gestion des lots et statistiques</div>
+                <div class="app-title">Administration <span class="badge">V2</span></div>
+                <div class="app-description">
+                    Gestion des lots et statistiques
+                    <div class="new-feature">🆕 Suppression participants</div>
+                </div>
             </a>
         </div>
         
         <p style="margin-top: 50px; color: #666; font-size: 0.9em;">
-            Décembre 2024 - Optic 2000 / BLINK Sevran
+            Version 2.0 - Décembre 2024 - Optic 2000 / BLINK Sevran
         </p>
     </div>
 </body>
