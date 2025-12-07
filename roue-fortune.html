@@ -90,8 +90,8 @@
         .wheel-screen { display: none; text-align: center; }
         .wheel-container {
             position: relative;
-            width: 400px;
-            height: 400px;
+            width: 450px;
+            height: 450px;
             margin: 30px auto;
         }
         #wheelCanvas {
@@ -107,28 +107,28 @@
             transform: translateX(-50%);
             width: 0;
             height: 0;
-            border-left: 20px solid transparent;
-            border-right: 20px solid transparent;
-            border-top: 40px solid #d4af37;
+            border-left: 25px solid transparent;
+            border-right: 25px solid transparent;
+            border-top: 50px solid #d4af37;
             z-index: 20;
-            filter: drop-shadow(0 3px 5px rgba(0, 0, 0, 0.3));
+            filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.5));
         }
         .wheel-center {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 80px;
-            height: 80px;
+            width: 100px;
+            height: 100px;
             background: linear-gradient(135deg, #d4af37 0%, #f4e5a1 100%);
             border-radius: 50%;
-            border: 5px solid white;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            border: 6px solid white;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
             z-index: 20;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2em;
+            font-size: 2.5em;
         }
         .btn-spin {
             padding: 20px 50px;
@@ -243,15 +243,10 @@
             margin: 20px 0;
             display: none;
         }
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
         @media (max-width: 768px) {
             .container { padding: 20px; }
             .header h1 { font-size: 2em; }
-            .wheel-container { width: 300px; height: 300px; }
+            .wheel-container { width: 320px; height: 320px; }
             .code-display { font-size: 1.8em; }
         }
     </style>
@@ -284,7 +279,7 @@
             <h2 style="color: #8b0000; margin-bottom: 20px;">🎰 Tournez la roue ! 🎰</h2>
             <div class="wheel-container">
                 <div class="wheel-pointer"></div>
-                <canvas id="wheelCanvas" width="400" height="400"></canvas>
+                <canvas id="wheelCanvas" width="450" height="450"></canvas>
                 <div class="wheel-center">🎄</div>
             </div>
             <button class="btn-spin" id="spinButton" onclick="spinWheel()">LANCER LA ROUE !</button>
@@ -322,10 +317,11 @@
         const db = getFirestore(app);
         
         let prizes = [];
+        let wheelSlices = [];
         let currentUser = null;
         let isSpinning = false;
+        const TOTAL_SLICES = 24;
 
-        // Charger les lots depuis Firebase
         async function loadPrizes() {
             try {
                 const snapshot = await getDocs(collection(db, 'prizes'));
@@ -341,12 +337,7 @@
                     return false;
                 }
 
-                // Vérifier que le total fait 100%
-                const total = prizes.reduce((sum, p) => sum + p.probability, 0);
-                if (total !== 100) {
-                    console.warn('⚠️ Total des probabilités:', total + '%');
-                }
-
+                wheelSlices = createWheelSlices(prizes, TOTAL_SLICES);
                 updateConnectionStatus(true);
                 return true;
             } catch (error) {
@@ -354,6 +345,27 @@
                 showError("Erreur de chargement. Vérifiez votre connexion.");
                 return false;
             }
+        }
+
+        function createWheelSlices(prizes, totalSlices) {
+            const slices = [];
+            prizes.forEach(prize => {
+                const count = Math.round((prize.probability / 100) * totalSlices);
+                for (let i = 0; i < count; i++) {
+                    slices.push(prize);
+                }
+            });
+            
+            while (slices.length < totalSlices) slices.push(prizes[0]);
+            while (slices.length > totalSlices) slices.pop();
+            
+            // Mélanger les cases pour éviter que les mêmes lots soient côte à côte
+            for (let i = slices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [slices[i], slices[j]] = [slices[j], slices[i]];
+            }
+            
+            return slices;
         }
 
         function createSnowflakes() {
@@ -378,14 +390,15 @@
             const radius = canvas.width / 2 - 10;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let currentAngle = 0;
+            const sliceAngle = (2 * Math.PI) / TOTAL_SLICES;
 
-            prizes.forEach(prize => {
-                const sliceAngle = (prize.probability / 100) * 2 * Math.PI;
+            wheelSlices.forEach((prize, index) => {
+                const startAngle = index * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
                 
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                 ctx.closePath();
                 ctx.fillStyle = prize.color;
                 ctx.fill();
@@ -393,18 +406,17 @@
                 ctx.lineWidth = 3;
                 ctx.stroke();
 
+                // Afficher emoji et texte
                 ctx.save();
                 ctx.translate(centerX, centerY);
-                ctx.rotate(currentAngle + sliceAngle / 2);
+                ctx.rotate(startAngle + sliceAngle / 2);
                 ctx.textAlign = 'center';
                 ctx.fillStyle = 'white';
                 ctx.font = 'bold 20px Arial';
-                ctx.fillText(prize.emoji, radius / 2, 10);
-                ctx.font = 'bold 14px Arial';
-                ctx.fillText(prize.name, radius / 2, -15);
+                ctx.fillText(prize.emoji, radius * 0.65, 8);
+                ctx.font = 'bold 11px Arial';
+                ctx.fillText(prize.name.substring(0, 8), radius * 0.65, -12);
                 ctx.restore();
-
-                currentAngle += sliceAngle;
             });
         }
 
@@ -445,33 +457,19 @@
             spinButton.disabled = true;
             spinButton.textContent = "LA ROUE TOURNE...";
 
-            const selectedPrize = selectPrizeByProbability();
-            const totalRotation = (5 * 360) + (360 - getPrizeAngle(selectedPrize)) + Math.random() * 360;
+            // Sélectionner une case aléatoire
+            const winningSliceIndex = Math.floor(Math.random() * TOTAL_SLICES);
+            const selectedPrize = wheelSlices[winningSliceIndex];
+            
+            // Calculer l'angle pour s'arrêter sur cette case
+            const sliceAngle = 360 / TOTAL_SLICES;
+            const targetAngle = winningSliceIndex * sliceAngle + (sliceAngle / 2);
+            const spins = 5;
+            const totalRotation = (spins * 360) + (360 - targetAngle);
+            
             document.getElementById('wheelCanvas').style.transform = `rotate(${totalRotation}deg)`;
             setTimeout(() => showPrize(selectedPrize), 4000);
         };
-
-        function selectPrizeByProbability() {
-            const random = Math.random() * 100;
-            let cumulative = 0;
-            for (let prize of prizes) {
-                cumulative += prize.probability;
-                if (random <= cumulative) return prize;
-            }
-            return prizes[prizes.length - 1];
-        }
-
-        function getPrizeAngle(selectedPrize) {
-            let angle = 0;
-            for (let prize of prizes) {
-                if (prize.id === selectedPrize.id) {
-                    angle += (prize.probability / 100) * 360 / 2;
-                    break;
-                }
-                angle += (prize.probability / 100) * 360;
-            }
-            return angle;
-        }
 
         async function showPrize(prize) {
             const code = `NOEL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -550,7 +548,6 @@
             }
         }
 
-        // Initialisation
         window.onload = async function() {
             createSnowflakes();
             const lotsLoaded = await loadPrizes();
