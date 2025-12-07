@@ -127,9 +127,7 @@
             cursor: pointer;
             margin-bottom: 20px;
         }
-        .btn-add:hover {
-            background: #229954;
-        }
+        .btn-add:hover { background: #229954; }
         .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
@@ -271,6 +269,18 @@
         }
         .badge-success { background: #27ae60; color: white; }
         .badge-warning { background: #f39c12; color: white; }
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #2196f3;
+            margin: 20px 0;
+        }
+        .info-box strong { color: #1976d2; }
+        @media (max-width: 968px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .form-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
@@ -291,12 +301,15 @@
         <div id="lots" class="tab-content active">
             <div class="card">
                 <h2>🎁 Configuration des Lots</h2>
+                <div class="info-box">
+                    ℹ️ <strong>Roue à 24 cases :</strong> Les lots seront répétés automatiquement sur la roue selon leurs pourcentages. Par exemple, un lot à 50% occupera 12 cases sur 24.
+                </div>
                 <button class="btn-add" onclick="openPrizeModal()">➕ Ajouter un Nouveau Lot</button>
                 <div id="totalProbability" class="total-probability"></div>
                 <div class="prize-list" id="prizesList"></div>
             </div>
             <div class="card">
-                <h2>👁️ Prévisualisation de la Roue</h2>
+                <h2>👁️ Prévisualisation de la Roue (24 cases)</h2>
                 <canvas id="previewWheel" class="preview-wheel" width="300" height="300"></canvas>
             </div>
         </div>
@@ -344,6 +357,7 @@
                                 <th>Lot Gagné</th>
                                 <th>Code</th>
                                 <th>Statut</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="participationsBody"></tbody>
@@ -372,7 +386,8 @@
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Probabilité (%) *</label>
-                        <input type="number" id="prizeProbability" min="1" max="100" required>
+                        <input type="number" id="prizeProbability" min="1" max="100" step="0.01" required>
+                        <small style="color: #666;">💡 Peut être décimal (ex: 12.5%)</small>
                     </div>
                     <div class="form-group">
                         <label>Couleur *</label>
@@ -455,7 +470,7 @@
             const prizeData = {
                 name: document.getElementById('prizeName').value,
                 description: document.getElementById('prizeDescription').value,
-                probability: parseInt(document.getElementById('prizeProbability').value),
+                probability: parseFloat(document.getElementById('prizeProbability').value),
                 color: document.getElementById('prizeColor').value,
                 emoji: document.getElementById('prizeEmoji').value
             };
@@ -486,6 +501,22 @@
             }
         };
 
+        window.deleteParticipation = async function(participationId) {
+            if (!confirm('⚠️ Êtes-vous sûr de vouloir supprimer cette participation ?')) return;
+            
+            try {
+                await deleteDoc(doc(db, 'participations', participationId));
+                alert('✅ Participation supprimée !');
+                loadParticipations();
+                if (document.getElementById('stats').classList.contains('active')) {
+                    loadStatistics();
+                }
+            } catch (error) {
+                console.error('Erreur:', error);
+                alert('❌ Erreur lors de la suppression : ' + error.message);
+            }
+        };
+
         async function loadPrizes() {
             try {
                 const snapshot = await getDocs(collection(db, 'prizes'));
@@ -494,7 +525,6 @@
                     ...doc.data()
                 }));
 
-                // S'il n'y a pas de lots, créer les lots par défaut
                 if (prizes.length === 0) {
                     await createDefaultPrizes();
                     return;
@@ -527,6 +557,7 @@
             container.innerHTML = '';
 
             prizes.forEach(prize => {
+                const casesCount = Math.round((prize.probability / 100) * 24);
                 const item = document.createElement('div');
                 item.className = 'prize-item';
                 item.innerHTML = `
@@ -536,7 +567,7 @@
                     <div class="prize-info">
                         <div class="prize-name">${prize.name}</div>
                         <div class="prize-description">${prize.description}</div>
-                        <div class="prize-probability">Probabilité : ${prize.probability}%</div>
+                        <div class="prize-probability">Probabilité : ${prize.probability}% → ${casesCount} cases sur 24</div>
                     </div>
                     <div class="prize-actions">
                         <button class="btn btn-primary" onclick="openPrizeModal('${prize.id}')">✏️</button>
@@ -552,17 +583,17 @@
             const container = document.getElementById('totalProbability');
             
             let className = 'total-probability';
-            let message = `Total des probabilités : ${total}%`;
+            let message = `Total des probabilités : ${total.toFixed(2)}%`;
             
-            if (total === 100) {
+            if (Math.abs(total - 100) < 0.01) {
                 className += ' valid';
                 message += ' ✅';
             } else if (total < 100) {
                 className += ' invalid';
-                message += ` ⚠️ Il manque ${100 - total}%`;
+                message += ` ⚠️ Il manque ${(100 - total).toFixed(2)}%`;
             } else {
                 className += ' invalid';
-                message += ` ⚠️ Dépassement de ${total - 100}%`;
+                message += ` ⚠️ Dépassement de ${(total - 100).toFixed(2)}%`;
             }
             
             container.className = className;
@@ -577,14 +608,18 @@
             const radius = canvas.width / 2 - 10;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            let currentAngle = 0;
 
-            prizes.forEach(prize => {
-                const sliceAngle = (prize.probability / 100) * 2 * Math.PI;
+            // Créer 24 cases
+            const wheelSlices = createWheelSlices(prizes, 24);
+            const sliceAngle = (2 * Math.PI) / 24;
+            
+            wheelSlices.forEach((prize, index) => {
+                const startAngle = index * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
                 
                 ctx.beginPath();
                 ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, currentAngle, currentAngle + sliceAngle);
+                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
                 ctx.closePath();
                 ctx.fillStyle = prize.color;
                 ctx.fill();
@@ -594,15 +629,39 @@
 
                 ctx.save();
                 ctx.translate(centerX, centerY);
-                ctx.rotate(currentAngle + sliceAngle / 2);
+                ctx.rotate(startAngle + sliceAngle / 2);
                 ctx.textAlign = 'center';
                 ctx.fillStyle = 'white';
-                ctx.font = 'bold 20px Arial';
-                ctx.fillText(prize.emoji, radius / 2, 5);
+                ctx.font = 'bold 12px Arial';
+                ctx.fillText(prize.emoji, radius * 0.7, 5);
                 ctx.restore();
-
-                currentAngle += sliceAngle;
             });
+        }
+
+        function createWheelSlices(prizes, totalSlices) {
+            const slices = [];
+            prizes.forEach(prize => {
+                const count = Math.round((prize.probability / 100) * totalSlices);
+                for (let i = 0; i < count; i++) {
+                    slices.push(prize);
+                }
+            });
+            
+            // Ajuster si pas exactement 24
+            while (slices.length < totalSlices) {
+                slices.push(prizes[0]);
+            }
+            while (slices.length > totalSlices) {
+                slices.pop();
+            }
+            
+            // Mélanger pour éviter que les mêmes lots soient côte à côte
+            for (let i = slices.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [slices[i], slices[j]] = [slices[j], slices[i]];
+            }
+            
+            return slices;
         }
 
         async function loadStatistics() {
@@ -620,7 +679,6 @@
                 document.getElementById('totalPending').textContent = pending;
                 document.getElementById('conversionRate').textContent = conversionRate + '%';
 
-                // Répartition des lots
                 const prizeCount = {};
                 data.forEach(p => {
                     prizeCount[p.prize] = (prizeCount[p.prize] || 0) + 1;
@@ -652,7 +710,10 @@
         async function loadParticipations() {
             try {
                 const snapshot = await getDocs(collection(db, 'participations'));
-                const data = snapshot.docs.map(doc => doc.data());
+                const data = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
 
                 const tbody = document.getElementById('participationsBody');
                 tbody.innerHTML = '';
@@ -670,6 +731,11 @@
                             <span class="badge ${p.used ? 'badge-success' : 'badge-warning'}">
                                 ${p.used ? '✅ Récupéré' : '⏳ En attente'}
                             </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger" onclick="deleteParticipation('${p.id}')">
+                                🗑️ Supprimer
+                            </button>
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -690,7 +756,6 @@
             }
         }
 
-        // Initialisation
         loadPrizes();
     </script>
 </body>
