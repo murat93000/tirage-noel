@@ -517,6 +517,13 @@
             <button class="btn-new" onclick="newParticipation()">➡️ NOUVEAU PARTICIPANT</button>
         </div>
     </div>
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script>
+        // Initialiser EmailJS avec ta Public Key
+        emailjs.init('fdphtAdHOCapl8ppM');
+    </script>
+    
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
         import { getFirestore, collection, query, where, getDocs, addDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
@@ -741,6 +748,7 @@
             const code = `NOEL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
             try {
+                // Sauvegarder dans Firebase
                 await addDoc(collection(db, 'participations'), {
                     ...currentUser,
                     prize: prize.name,
@@ -749,11 +757,33 @@
                     code: code,
                     used: false,
                     createdAt: Timestamp.now(),
-                    emailSent: true
+                    emailSent: false
                 });
                 console.log("✅ Participation enregistrée");
-                console.log("📧 Email envoyé à:", currentUser.email);
-                document.getElementById('emailSent').style.display = 'block';
+                
+                // 📧 ENVOI D'EMAIL AVEC EMAILJS 📧
+                try {
+                    const emailParams = {
+                        to_email: currentUser.email,
+                        prenom: currentUser.prenom,
+                        prize: prize.name,
+                        prizeDescription: prize.description,
+                        code: code
+                    };
+                    
+                    const response = await emailjs.send(
+                        'service_fnmmsz4',  // Service ID
+                        'oo4mnmh',           // Template ID
+                        emailParams
+                    );
+                    
+                    console.log('✅ Email envoyé avec succès !', response);
+                    document.getElementById('emailSent').style.display = 'block';
+                } catch (emailError) {
+                    console.error('❌ Erreur envoi email:', emailError);
+                    // On continue même si l'email échoue
+                }
+                
             } catch (error) {
                 console.error("❌ Erreur sauvegarde:", error);
             }
