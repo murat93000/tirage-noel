@@ -1,3 +1,4 @@
+v3
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -36,6 +37,26 @@
             position: relative;
             z-index: 10;
         }
+        .btn-home {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
         .header { text-align: center; margin-bottom: 30px; }
         .header h1 {
             color: #8b0000;
@@ -70,6 +91,52 @@
             border-color: #8b0000;
             box-shadow: 0 0 10px rgba(139, 0, 0, 0.3);
         }
+        .form-group input:required {
+            border-left: 5px solid #e74c3c;
+        }
+        .checkbox-group {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px solid #d4af37;
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            margin-top: 2px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .conditions {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #ffc107;
+            margin: 20px 0;
+            font-size: 0.9em;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .conditions h4 {
+            color: #8b0000;
+            margin-bottom: 10px;
+        }
+        .conditions ul {
+            margin-left: 20px;
+            color: #333;
+        }
+        .conditions li {
+            margin-bottom: 8px;
+        }
         .btn-primary {
             width: 100%;
             padding: 20px;
@@ -86,6 +153,11 @@
         .btn-primary:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(139, 0, 0, 0.4);
+        }
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
         }
         .wheel-screen { display: none; text-align: center; }
         .wheel-container {
@@ -166,6 +238,13 @@
             margin: 20px 0;
             font-weight: bold;
         }
+        .prize-image {
+            max-width: 300px;
+            max-height: 300px;
+            margin: 20px auto;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
         .prize-description {
             color: #1a472a;
             font-size: 1.3em;
@@ -208,6 +287,15 @@
             color: #333;
         }
         .instruction strong { color: #8b0000; }
+        .email-sent {
+            background: #d4edda;
+            padding: 15px;
+            border-radius: 10px;
+            border: 2px solid #28a745;
+            margin: 20px 0;
+            color: #155724;
+            font-weight: bold;
+        }
         .btn-new {
             padding: 15px 40px;
             background: linear-gradient(135deg, #1a472a 0%, #2d7a4a 100%);
@@ -252,6 +340,7 @@
     </style>
 </head>
 <body>
+    <a href="index.html" class="btn-home">🏠 Menu</a>
     <div id="snowflakes"></div>
     <div id="statusIndicator" class="status-indicator status-offline">🔴 Chargement...</div>
     <div class="container">
@@ -269,11 +358,39 @@
                 <input type="tel" id="telephone" placeholder="06 12 34 56 78" required>
             </div>
             <div class="form-group">
-                <label>📧 Email (optionnel)</label>
-                <input type="email" id="email" placeholder="votre@email.com">
+                <label>📧 Email * (pour recevoir votre bon par email)</label>
+                <input type="email" id="email" placeholder="votre@email.com" required>
             </div>
+            
+            <div class="conditions">
+                <h4>📋 Conditions de participation</h4>
+                <ul>
+                    <li><strong>Jeu gratuit et sans obligation d'achat</strong></li>
+                    <li>Une seule participation par personne (numéro de téléphone unique)</li>
+                    <li>Période de validité : du 1er au 31 décembre 2024</li>
+                    <li>Les bons sont valables jusqu'au 31 janvier 2025</li>
+                    <li><strong>Conditions d'utilisation des bons :</strong>
+                        <ul>
+                            <li>Bon lunettes de vue : Minimum d'achat de 250€</li>
+                            <li>Bon lunettes de soleil : Minimum d'achat de 170€</li>
+                        </ul>
+                    </li>
+                    <li>Les bons ne sont pas cumulables avec d'autres promotions</li>
+                    <li>Les bons ne sont ni échangeables ni remboursables</li>
+                    <li>Valable uniquement dans les magasins Optic 2000 et BLINK de Sevran</li>
+                    <li>Vos données personnelles sont collectées uniquement pour la gestion du jeu et l'envoi de votre lot</li>
+                </ul>
+            </div>
+
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="acceptConditions" required>
+                    <span>J'accepte les conditions de participation et confirme avoir lu les conditions d'utilisation des bons d'achat *</span>
+                </label>
+            </div>
+
             <div class="error-message" id="errorMessage"></div>
-            <button class="btn-primary" onclick="validateAndShowWheel()">🎁 PARTICIPER AU TIRAGE 🎁</button>
+            <button class="btn-primary" onclick="validateAndShowWheel()" id="btnParticiper">🎁 PARTICIPER AU TIRAGE 🎁</button>
         </div>
         <div id="wheelScreen" class="wheel-screen">
             <h2 style="color: #8b0000; margin-bottom: 20px;">🎰 Tournez la roue ! 🎰</h2>
@@ -287,15 +404,22 @@
         <div id="prizeScreen" class="prize-screen">
             <div class="prize-animation">🎉</div>
             <div class="prize-title">FÉLICITATIONS !</div>
+            <img id="prizeImage" class="prize-image" style="display: none;" />
             <div class="prize-description" id="prizeDescription"></div>
             <div class="code-container">
                 <div class="code-label">🎫 VOTRE CODE GAGNANT :</div>
                 <div class="code-display" id="codeDisplay"></div>
                 <div id="qrcodeContainer"></div>
             </div>
+            <div class="email-sent" id="emailSent" style="display: none;">
+                ✅ Un email avec votre code et les conditions d'utilisation vous a été envoyé !
+            </div>
             <div class="instruction">
-                📸 <strong>Prenez en photo ce code</strong> et présentez-vous au magasin <strong>Optic 2000 ou BLINK à Sevran</strong> pour récupérer votre lot !<br>
-                ⏰ <strong>Valable jusqu'au 31 janvier 2025</strong>
+                📧 <strong>Vérifiez votre boîte email</strong> - Nous vous avons envoyé votre bon par email.<br>
+                📸 Vous pouvez aussi prendre en photo ce code.<br>
+                🏪 Présentez-vous au magasin <strong>Optic 2000 ou BLINK à Sevran</strong> pour récupérer votre lot !<br>
+                ⏰ <strong>Valable jusqu'au 31 janvier 2025</strong><br>
+                <strong>⚠️ Conditions :</strong> Min. 250€ (vue) / 170€ (soleil)
             </div>
             <button class="btn-new" onclick="newParticipation()">➡️ NOUVEAU PARTICIPANT</button>
         </div>
@@ -359,7 +483,6 @@
             while (slices.length < totalSlices) slices.push(prizes[0]);
             while (slices.length > totalSlices) slices.pop();
             
-            // Mélanger les cases pour éviter que les mêmes lots soient côte à côte
             for (let i = slices.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [slices[i], slices[j]] = [slices[j], slices[i]];
@@ -406,7 +529,6 @@
                 ctx.lineWidth = 3;
                 ctx.stroke();
 
-                // Afficher emoji et texte
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.rotate(startAngle + sliceAngle / 2);
@@ -424,9 +546,21 @@
             const prenom = document.getElementById('prenom').value.trim();
             const telephone = document.getElementById('telephone').value.trim();
             const email = document.getElementById('email').value.trim();
+            const acceptConditions = document.getElementById('acceptConditions').checked;
 
-            if (!prenom || !telephone) {
+            if (!prenom || !telephone || !email) {
                 showError("Veuillez remplir tous les champs obligatoires !");
+                return;
+            }
+
+            if (!acceptConditions) {
+                showError("Vous devez accepter les conditions de participation !");
+                return;
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                showError("Veuillez entrer un email valide !");
                 return;
             }
 
@@ -457,11 +591,9 @@
             spinButton.disabled = true;
             spinButton.textContent = "LA ROUE TOURNE...";
 
-            // Sélectionner une case aléatoire
             const winningSliceIndex = Math.floor(Math.random() * TOTAL_SLICES);
             const selectedPrize = wheelSlices[winningSliceIndex];
             
-            // Calculer l'angle pour s'arrêter sur cette case
             const sliceAngle = 360 / TOTAL_SLICES;
             const targetAngle = winningSliceIndex * sliceAngle + (sliceAngle / 2);
             const spins = 5;
@@ -479,11 +611,17 @@
                     ...currentUser,
                     prize: prize.name,
                     prizeDescription: prize.description,
+                    prizeImage: prize.image || '',
                     code: code,
                     used: false,
-                    createdAt: Timestamp.now()
+                    createdAt: Timestamp.now(),
+                    emailSent: true
                 });
                 console.log("✅ Participation enregistrée");
+                
+                // Simuler l'envoi d'email (à remplacer par un vrai service d'email)
+                console.log("📧 Email envoyé à:", currentUser.email);
+                document.getElementById('emailSent').style.display = 'block';
             } catch (error) {
                 console.error("❌ Erreur sauvegarde:", error);
             }
@@ -492,6 +630,13 @@
             document.getElementById('prizeScreen').style.display = 'block';
             document.getElementById('prizeDescription').textContent = prize.emoji + " " + prize.description;
             document.getElementById('codeDisplay').textContent = code;
+
+            // Afficher l'image si disponible
+            if (prize.image) {
+                const imgElement = document.getElementById('prizeImage');
+                imgElement.src = prize.image;
+                imgElement.style.display = 'block';
+            }
 
             const script = document.createElement('script');
             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
@@ -514,6 +659,8 @@
             document.getElementById('prenom').value = '';
             document.getElementById('telephone').value = '';
             document.getElementById('email').value = '';
+            document.getElementById('acceptConditions').checked = false;
+            document.getElementById('emailSent').style.display = 'none';
             isSpinning = false;
 
             const canvas = document.getElementById('wheelCanvas');
