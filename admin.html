@@ -12,6 +12,26 @@
             min-height: 100vh;
             padding: 20px;
         }
+        .btn-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
         .container { max-width: 1400px; margin: 0 auto; }
         .header {
             background: white;
@@ -69,16 +89,32 @@
             border-radius: 10px;
             margin-bottom: 15px;
             display: grid;
-            grid-template-columns: 80px 1fr auto;
+            grid-template-columns: 120px 1fr auto;
             gap: 20px;
             align-items: center;
             border-left: 5px solid #3498db;
         }
+        .prize-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
         .prize-color-preview {
-            width: 60px;
-            height: 60px;
+            width: 100px;
+            height: 100px;
             border-radius: 10px;
             border: 3px solid #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+        }
+        .prize-image-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 3px solid #3498db;
         }
         .prize-info { flex: 1; }
         .prize-name {
@@ -153,6 +189,29 @@
             grid-template-columns: 1fr 1fr;
             gap: 20px;
         }
+        .image-preview-container {
+            margin-top: 10px;
+            text-align: center;
+        }
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            border: 3px solid #3498db;
+            margin-top: 10px;
+        }
+        .help-text {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 5px;
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #2196f3;
+            margin: 20px 0;
+        }
         .modal {
             display: none;
             position: fixed;
@@ -170,7 +229,7 @@
             background: white;
             padding: 30px;
             border-radius: 20px;
-            max-width: 600px;
+            max-width: 700px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -269,26 +328,20 @@
         }
         .badge-success { background: #27ae60; color: white; }
         .badge-warning { background: #f39c12; color: white; }
-        .info-box {
-            background: #e3f2fd;
-            padding: 15px;
-            border-radius: 10px;
-            border-left: 4px solid #2196f3;
-            margin: 20px 0;
-        }
-        .info-box strong { color: #1976d2; }
         @media (max-width: 968px) {
             .stats-grid { grid-template-columns: 1fr; }
             .form-grid { grid-template-columns: 1fr; }
+            .prize-item { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+    <a href="index.html" class="btn-home">🏠 Menu</a>
     <div id="statusIndicator" class="status-indicator status-offline">🔴 Initialisation...</div>
     <div class="container">
         <div class="header">
             <h1>⚙️ Administration - Tirage au Sort</h1>
-            <div style="color: #666; margin-top: 10px;">Optic 2000 / BLINK - Sevran</div>
+            <div style="color: #666; margin-top: 10px;">Optic 2000 / BLINK - Sevran - Version 3.0</div>
         </div>
 
         <div class="tabs">
@@ -297,12 +350,12 @@
             <button class="tab-button" onclick="switchTab('participations')">👥 Participations</button>
         </div>
 
-        <!-- Tab: Gestion des Lots -->
         <div id="lots" class="tab-content active">
             <div class="card">
                 <h2>🎁 Configuration des Lots</h2>
                 <div class="info-box">
-                    ℹ️ <strong>Roue à 24 cases :</strong> Les lots seront répétés automatiquement sur la roue selon leurs pourcentages. Par exemple, un lot à 50% occupera 12 cases sur 24.
+                    ℹ️ <strong>Roue à 24 cases :</strong> Les lots seront répétés automatiquement sur la roue selon leurs pourcentages.<br>
+                    🖼️ <strong>Images :</strong> Vous pouvez ajouter une photo pour chaque lot (uploadez sur Imgur et collez l'URL).
                 </div>
                 <button class="btn-add" onclick="openPrizeModal()">➕ Ajouter un Nouveau Lot</button>
                 <div id="totalProbability" class="total-probability"></div>
@@ -314,7 +367,6 @@
             </div>
         </div>
 
-        <!-- Tab: Statistiques -->
         <div id="stats" class="tab-content">
             <div class="card">
                 <h2>📊 Statistiques Globales</h2>
@@ -343,7 +395,6 @@
             </div>
         </div>
 
-        <!-- Tab: Participations -->
         <div id="participations" class="tab-content">
             <div class="card">
                 <h2>👥 Liste des Participations</h2>
@@ -354,6 +405,7 @@
                                 <th>Date</th>
                                 <th>Prénom</th>
                                 <th>Téléphone</th>
+                                <th>Email</th>
                                 <th>Lot Gagné</th>
                                 <th>Code</th>
                                 <th>Statut</th>
@@ -367,7 +419,6 @@
         </div>
     </div>
 
-    <!-- Modal Ajout/Edit Lot -->
     <div id="prizeModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -387,7 +438,7 @@
                     <div class="form-group">
                         <label>Probabilité (%) *</label>
                         <input type="number" id="prizeProbability" min="1" max="100" step="0.01" required>
-                        <small style="color: #666;">💡 Peut être décimal (ex: 12.5%)</small>
+                        <small class="help-text">💡 Peut être décimal (ex: 12.5%)</small>
                     </div>
                     <div class="form-group">
                         <label>Couleur *</label>
@@ -397,6 +448,14 @@
                 <div class="form-group">
                     <label>Emoji / Icône *</label>
                     <input type="text" id="prizeEmoji" placeholder="🎁" maxlength="2" required>
+                </div>
+                <div class="form-group">
+                    <label>URL de l'Image (optionnel)</label>
+                    <input type="url" id="prizeImage" placeholder="https://i.imgur.com/ABC123.jpg" onchange="previewImage()">
+                    <small class="help-text">💡 Uploadez sur <a href="https://imgur.com" target="_blank">Imgur</a>, puis copiez le lien de l'image</small>
+                    <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
+                        <img id="imagePreview" class="image-preview" />
+                    </div>
                 </div>
                 <button type="submit" class="btn btn-success" style="width: 100%; padding: 15px; font-size: 1.2em;">
                     💾 Sauvegarder
@@ -425,6 +484,19 @@
         let prizes = [];
         let editingPrizeId = null;
 
+        window.previewImage = function() {
+            const url = document.getElementById('prizeImage').value;
+            const preview = document.getElementById('imagePreview');
+            const container = document.getElementById('imagePreviewContainer');
+            
+            if (url) {
+                preview.src = url;
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+            }
+        };
+
         window.switchTab = function(tabName) {
             document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -450,10 +522,13 @@
                     document.getElementById('prizeProbability').value = prize.probability;
                     document.getElementById('prizeColor').value = prize.color;
                     document.getElementById('prizeEmoji').value = prize.emoji;
+                    document.getElementById('prizeImage').value = prize.image || '';
+                    if (prize.image) previewImage();
                 }
             } else {
                 title.textContent = '➕ Ajouter un Lot';
                 document.getElementById('prizeForm').reset();
+                document.getElementById('imagePreviewContainer').style.display = 'none';
             }
             
             modal.classList.add('active');
@@ -472,7 +547,8 @@
                 description: document.getElementById('prizeDescription').value,
                 probability: parseFloat(document.getElementById('prizeProbability').value),
                 color: document.getElementById('prizeColor').value,
-                emoji: document.getElementById('prizeEmoji').value
+                emoji: document.getElementById('prizeEmoji').value,
+                image: document.getElementById('prizeImage').value || ''
             };
 
             try {
@@ -540,9 +616,9 @@
 
         async function createDefaultPrizes() {
             const defaultPrizes = [
-                { name: "Petit Cadeau", description: "Un petit cadeau surprise !", probability: 15, color: "#ff6b6b", emoji: "🎁" },
-                { name: "Bon 30€", description: "Bon d'achat 30€ pour lunettes de soleil", probability: 35, color: "#4ecdc4", emoji: "🕶️" },
-                { name: "Bon 50€", description: "Bon d'achat 50€ pour lunettes optiques", probability: 50, color: "#ffd93d", emoji: "👓" }
+                { name: "Petit Cadeau", description: "Un petit cadeau surprise !", probability: 15, color: "#ff6b6b", emoji: "🎁", image: "" },
+                { name: "Bon 30€", description: "Bon d'achat 30€ pour lunettes de soleil (min. 170€)", probability: 35, color: "#4ecdc4", emoji: "🕶️", image: "" },
+                { name: "Bon 50€", description: "Bon d'achat 50€ pour lunettes optiques (min. 250€)", probability: 50, color: "#ffd93d", emoji: "👓", image: "" }
             ];
 
             for (const prize of defaultPrizes) {
@@ -561,13 +637,17 @@
                 const item = document.createElement('div');
                 item.className = 'prize-item';
                 item.innerHTML = `
-                    <div class="prize-color-preview" style="background: ${prize.color}; display: flex; align-items: center; justify-content: center; font-size: 2em;">
-                        ${prize.emoji}
+                    <div class="prize-visual">
+                        <div class="prize-color-preview" style="background: ${prize.color};">
+                            ${prize.emoji}
+                        </div>
+                        ${prize.image ? `<img src="${prize.image}" class="prize-image-preview" onerror="this.style.display='none'" />` : ''}
                     </div>
                     <div class="prize-info">
                         <div class="prize-name">${prize.name}</div>
                         <div class="prize-description">${prize.description}</div>
                         <div class="prize-probability">Probabilité : ${prize.probability}% → ${casesCount} cases sur 24</div>
+                        ${prize.image ? '<div style="color: #27ae60; font-size: 0.9em; margin-top: 5px;">✅ Image configurée</div>' : ''}
                     </div>
                     <div class="prize-actions">
                         <button class="btn btn-primary" onclick="openPrizeModal('${prize.id}')">✏️</button>
@@ -609,7 +689,6 @@
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Créer 24 cases
             const wheelSlices = createWheelSlices(prizes, 24);
             const sliceAngle = (2 * Math.PI) / 24;
             
@@ -647,15 +726,9 @@
                 }
             });
             
-            // Ajuster si pas exactement 24
-            while (slices.length < totalSlices) {
-                slices.push(prizes[0]);
-            }
-            while (slices.length > totalSlices) {
-                slices.pop();
-            }
+            while (slices.length < totalSlices) slices.push(prizes[0]);
+            while (slices.length > totalSlices) slices.pop();
             
-            // Mélanger pour éviter que les mêmes lots soient côte à côte
             for (let i = slices.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [slices[i], slices[j]] = [slices[j], slices[i]];
@@ -725,6 +798,7 @@
                         <td>${createdAt.toLocaleDateString('fr-FR')} ${createdAt.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}</td>
                         <td>${p.prenom}</td>
                         <td>${p.telephone}</td>
+                        <td>${p.email || 'N/A'}</td>
                         <td>${p.prize}</td>
                         <td style="font-family: monospace; font-weight: bold;">${p.code}</td>
                         <td>
@@ -734,7 +808,7 @@
                         </td>
                         <td>
                             <button class="btn btn-danger" onclick="deleteParticipation('${p.id}')">
-                                🗑️ Supprimer
+                                🗑️
                             </button>
                         </td>
                     `;
