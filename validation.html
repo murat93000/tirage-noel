@@ -12,6 +12,26 @@
             min-height: 100vh;
             padding: 20px;
         }
+        .btn-home {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+        .btn-home:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
         .container { max-width: 1200px; margin: 0 auto; }
         .header {
             background: white;
@@ -117,14 +137,8 @@
             animation: slideIn 0.5s;
         }
         @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .result-valid {
             background: #d4edda;
@@ -150,6 +164,14 @@
             margin: 10px 0;
         }
         .result-info strong { color: #333; }
+        .prize-image-result {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 15px;
+            margin: 20px auto;
+            display: block;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
         .btn-confirm {
             margin-top: 20px;
             padding: 15px 40px;
@@ -219,11 +241,12 @@
     </style>
 </head>
 <body>
+    <a href="index.html" class="btn-home">🏠 Menu</a>
     <div id="statusIndicator" class="status-indicator status-offline">🔴 Hors ligne</div>
     <div class="container">
         <div class="header">
             <h1>🎁 Validation des Codes Gagnants</h1>
-            <div class="subtitle">Optic 2000 / BLINK - Sevran - Caisse</div>
+            <div class="subtitle">Optic 2000 / BLINK - Sevran - Caisse - Version 3.0</div>
         </div>
         <div class="card">
             <h2>🔍 Rechercher</h2>
@@ -236,7 +259,6 @@
                 </button>
             </div>
             
-            <!-- Recherche par code -->
             <div id="searchByCode">
                 <div class="input-group">
                     <label>Saisir le code :</label>
@@ -252,7 +274,6 @@
                 </button>
             </div>
 
-            <!-- Recherche par téléphone -->
             <div id="searchByPhone" style="display: none;">
                 <div class="input-group">
                     <label>Saisir le numéro de téléphone :</label>
@@ -421,9 +442,12 @@
                     card.className = 'participation-card';
                     card.innerHTML = `
                         <h4>${p.prenom} - ${p.telephone}</h4>
+                        ${p.prizeImage ? `<img src="${p.prizeImage}" class="prize-image-result" onerror="this.style.display='none'" />` : ''}
                         <div style="margin: 10px 0;">
                             <strong>Lot gagné :</strong> ${p.prize}<br>
+                            <strong>Description :</strong> ${p.prizeDescription || 'N/A'}<br>
                             <strong>Code :</strong> <span style="font-family: monospace; font-size: 1.2em; color: #e74c3c;">${p.code}</span><br>
+                            <strong>Email :</strong> ${p.email || 'N/A'}<br>
                             <strong>Date :</strong> ${formatDate(p.createdAt)}<br>
                             <strong>Statut :</strong> 
                             <span style="color: ${p.used ? '#28a745' : '#f39c12'}; font-weight: bold;">
@@ -457,11 +481,17 @@
             }
 
             if (data) {
+                if (data.prizeImage) {
+                    html += `<img src="${data.prizeImage}" class="prize-image-result" onerror="this.style.display='none'" />`;
+                }
+                
                 html += `
                     <div class="result-info">
                         <strong>Client :</strong> ${data.prenom}<br>
                         <strong>Téléphone :</strong> ${data.telephone}<br>
-                        <strong>Lot :</strong> ${data.prize} - ${data.prizeDescription}<br>
+                        <strong>Email :</strong> ${data.email || 'N/A'}<br>
+                        <strong>Lot :</strong> ${data.prize}<br>
+                        <strong>Description :</strong> ${data.prizeDescription || 'N/A'}<br>
                         <strong>Date tirage :</strong> ${formatDate(data.createdAt)}
                     </div>
                 `;
