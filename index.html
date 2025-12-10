@@ -1,4 +1,3 @@
-v2
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -15,124 +14,321 @@ v2
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .snowflake {
+            position: absolute;
+            color: white;
+            font-size: 1.5em;
+            opacity: 0.8;
+            animation: fall linear infinite;
+            user-select: none;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh); }
         }
         .container {
             background: white;
             border-radius: 30px;
             padding: 50px;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+        .header {
+            margin-bottom: 20px;
         }
         h1 {
             color: #8b0000;
-            font-size: 2.5em;
+            font-size: 2.8em;
             margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
         .subtitle {
             color: #1a472a;
-            font-size: 1.2em;
+            font-size: 1.3em;
             font-weight: bold;
-            margin-bottom: 50px;
+            margin-bottom: 10px;
+        }
+        .version-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 1em;
+            font-weight: bold;
+            margin-top: 10px;
+            box-shadow: 0 3px 10px rgba(231, 76, 60, 0.3);
+        }
+        .features-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .features-list h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .feature-item {
+            padding: 8px 0;
+            color: #555;
+            font-size: 0.95em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .feature-item::before {
+            content: "✨";
+            font-size: 1.2em;
         }
         .apps-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 30px;
+            gap: 25px;
             margin-top: 40px;
         }
         .app-card {
             background: linear-gradient(135deg, #f4e5a1 0%, #d4af37 100%);
-            padding: 30px;
+            padding: 35px 25px;
             border-radius: 20px;
-            border: 3px solid #8b0000;
+            border: 4px solid #8b0000;
             text-decoration: none;
             transition: all 0.3s;
             cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .app-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         .app-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+        .app-card:hover::before {
+            opacity: 1;
         }
         .app-icon {
-            font-size: 4em;
+            font-size: 4.5em;
             margin-bottom: 15px;
+            animation: float 3s ease-in-out infinite;
         }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .app-card:nth-child(1) .app-icon { animation-delay: 0s; }
+        .app-card:nth-child(2) .app-icon { animation-delay: 0.5s; }
+        .app-card:nth-child(3) .app-icon { animation-delay: 1s; }
         .app-title {
             color: #8b0000;
-            font-size: 1.5em;
+            font-size: 1.6em;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            position: relative;
         }
         .app-description {
             color: #1a472a;
-            font-size: 1em;
+            font-size: 1.05em;
             line-height: 1.5;
+            margin-bottom: 15px;
         }
         .badge {
             background: #e74c3c;
             color: white;
-            padding: 5px 10px;
+            padding: 5px 12px;
             border-radius: 15px;
-            font-size: 0.8em;
+            font-size: 0.75em;
             font-weight: bold;
-            margin-left: 10px;
+            margin-left: 8px;
+            display: inline-block;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
         .new-feature {
             background: #27ae60;
             color: white;
-            padding: 3px 8px;
+            padding: 4px 10px;
             border-radius: 10px;
             font-size: 0.85em;
             font-weight: bold;
             display: inline-block;
-            margin-top: 10px;
+            margin-top: 8px;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #ddd;
+        }
+        .footer p {
+            color: #666;
+            font-size: 0.95em;
+            margin: 5px 0;
+        }
+        .info-box {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #2196f3;
+            margin: 25px 0;
+            text-align: left;
+        }
+        .info-box strong {
+            color: #1976d2;
         }
         @media (max-width: 768px) {
-            .container { padding: 30px; }
-            h1 { font-size: 2em; }
-            .apps-grid { grid-template-columns: 1fr; }
+            .container { 
+                padding: 30px 20px;
+            }
+            h1 { 
+                font-size: 2.2em; 
+            }
+            .apps-grid { 
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .app-icon {
+                font-size: 3.5em;
+            }
+            .app-title {
+                font-size: 1.4em;
+            }
         }
     </style>
 </head>
 <body>
+    <div id="snowflakes"></div>
+    
     <div class="container">
-        <h1>🎄 Grand Tirage de Noël 🎁</h1>
-        <div class="subtitle">Optic 2000 / BLINK - Sevran</div>
+        <div class="header">
+            <h1>🎄 Grand Tirage de Noël 🎁</h1>
+            <div class="subtitle">Optic 2000 / BLINK - Sevran</div>
+            <div class="version-badge">VERSION 3.0</div>
+        </div>
+
+        <div class="features-list">
+            <h3>🆕 Nouveautés Version 3</h3>
+            <div class="feature-item">Email obligatoire pour recevoir le bon par mail</div>
+            <div class="feature-item">Conditions de participation affichées clairement</div>
+            <div class="feature-item">Minimums d'achat : 250€ (vue) / 170€ (soleil)</div>
+            <div class="feature-item">Photos des lots pour plus d'attractivité</div>
+            <div class="feature-item">Recherche par téléphone dans la validation</div>
+            <div class="feature-item">Bouton retour menu sur toutes les pages</div>
+        </div>
+
+        <div class="info-box">
+            <strong>🎮 Comment ça marche ?</strong><br>
+            1️⃣ <strong>Tablette :</strong> Le client remplit le formulaire et tourne la roue<br>
+            2️⃣ <strong>Email :</strong> Le client reçoit son code par email automatiquement<br>
+            3️⃣ <strong>Caisse :</strong> Validez le code quand le client se présente au magasin
+        </div>
         
         <div class="apps-grid">
             <a href="roue-fortune.html" class="app-card">
                 <div class="app-icon">🎰</div>
-                <div class="app-title">Roue de la Fortune <span class="badge">V2</span></div>
+                <div class="app-title">
+                    Roue de la Fortune
+                    <span class="badge">V3</span>
+                </div>
                 <div class="app-description">
                     Pour la tablette de prospection
-                    <div class="new-feature">🆕 Roue à 24 cases</div>
                 </div>
+                <div class="new-feature">🆕 Email obligatoire</div>
+                <div class="new-feature">🆕 Conditions CGU</div>
             </a>
             
             <a href="validation.html" class="app-card">
                 <div class="app-icon">✅</div>
-                <div class="app-title">Validation des Codes <span class="badge">V2</span></div>
-                <div class="app-description">
-                    Pour le PC du magasin
-                    <div class="new-feature">🆕 Recherche par téléphone</div>
+                <div class="app-title">
+                    Validation des Codes
+                    <span class="badge">V3</span>
                 </div>
+                <div class="app-description">
+                    Pour le PC du magasin (caisse)
+                </div>
+                <div class="new-feature">🆕 Recherche par téléphone</div>
+                <div class="new-feature">🆕 Affichage images</div>
             </a>
             
             <a href="admin.html" class="app-card">
                 <div class="app-icon">⚙️</div>
-                <div class="app-title">Administration <span class="badge">V2</span></div>
+                <div class="app-title">
+                    Administration
+                    <span class="badge">V3</span>
+                </div>
                 <div class="app-description">
                     Gestion des lots et statistiques
-                    <div class="new-feature">🆕 Suppression participants</div>
                 </div>
+                <div class="new-feature">🆕 Upload images</div>
+                <div class="new-feature">🆕 Suppression</div>
             </a>
         </div>
         
-        <p style="margin-top: 50px; color: #666; font-size: 0.9em;">
-            Version 2.0 - Décembre 2024 - Optic 2000 / BLINK Sevran
-        </p>
+        <div class="footer">
+            <p style="font-weight: bold; color: #8b0000; font-size: 1.1em;">
+                🎁 Jeu gratuit sans obligation d'achat 🎁
+            </p>
+            <p>Valable du 1er au 31 décembre 2024</p>
+            <p>Bons valables jusqu'au 31 janvier 2025</p>
+            <p style="margin-top: 15px; font-size: 0.85em;">
+                Version 3.0 - Décembre 2024 - Optic 2000 / BLINK Sevran
+            </p>
+        </div>
     </div>
+
+    <script>
+        // Créer les flocons de neige
+        function createSnowflakes() {
+            const container = document.getElementById('snowflakes');
+            const numberOfSnowflakes = 40;
+            
+            for (let i = 0; i < numberOfSnowflakes; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.className = 'snowflake';
+                snowflake.innerHTML = '❄';
+                snowflake.style.left = Math.random() * 100 + '%';
+                snowflake.style.top = -10 + 'px';
+                snowflake.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                snowflake.style.animationDelay = Math.random() * 5 + 's';
+                snowflake.style.fontSize = (Math.random() * 1 + 0.5) + 'em';
+                snowflake.style.opacity = Math.random() * 0.6 + 0.4;
+                container.appendChild(snowflake);
+            }
+        }
+
+        // Initialiser au chargement
+        window.onload = function() {
+            createSnowflakes();
+            
+            // Effet de hover sur les cartes
+            document.querySelectorAll('.app-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.borderColor = '#d4af37';
+                });
+                card.addEventListener('mouseleave', function() {
+                    this.style.borderColor = '#8b0000';
+                });
+            });
+        };
+    </script>
 </body>
 </html>
