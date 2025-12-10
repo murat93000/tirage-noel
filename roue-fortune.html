@@ -763,20 +763,12 @@
                 
                 // 📧 ENVOI D'EMAIL AVEC EMAILJS 📧
                 try {
-                    // Détecter si c'est un bon d'achat
-                    const isBonAchat = prize.name.toLowerCase().includes('bon') || 
-                                      prize.description.toLowerCase().includes('bon d\'achat') ||
-                                      prize.description.toLowerCase().includes('bon de');
-                    
                     const emailParams = {
-                        email: currentUser.email,           // Pour To Email et Reply To
-                        name: 'Optic 2000 Sevran',         // Nom de l'expéditeur
-                        prenom: currentUser.prenom,         // Pour le corps de l'email
+                        email: currentUser.email,
+                        prenom: currentUser.prenom,
                         prize: prize.name,
                         prizeDescription: prize.description,
-                        prizeImage: prize.image || '',      // Image du lot
-                        code: code,
-                        isBonAchat: isBonAchat ? 'true' : 'false'  // Type de lot
+                        code: code
                     };
                     
                     const response = await emailjs.send(
