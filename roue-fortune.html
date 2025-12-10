@@ -764,8 +764,9 @@
                 // 📧 ENVOI D'EMAIL AVEC EMAILJS 📧
                 try {
                     const emailParams = {
-                        to_email: currentUser.email,
-                        prenom: currentUser.prenom,
+                        email: currentUser.email,           // Pour To Email et Reply To
+                        name: currentUser.prenom,           // Pour From Name
+                        prenom: currentUser.prenom,         // Pour le corps de l'email
                         prize: prize.name,
                         prizeDescription: prize.description,
                         code: code
