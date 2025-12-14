@@ -89,10 +89,15 @@
             border-radius: 10px;
             margin-bottom: 15px;
             display: grid;
-            grid-template-columns: 120px 1fr auto;
+            grid-template-columns: 120px 1fr 100px auto;
             gap: 20px;
             align-items: center;
             border-left: 5px solid #3498db;
+        }
+        .prize-item.out-of-stock {
+            opacity: 0.6;
+            border-left-color: #95a5a6;
+            background: #ecf0f1;
         }
         .prize-visual {
             display: flex;
@@ -132,9 +137,38 @@
             font-weight: bold;
             font-size: 1.1em;
         }
+        .stock-info {
+            text-align: center;
+        }
+        .stock-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .stock-number.stock-ok { color: #27ae60; }
+        .stock-number.stock-warning { color: #f39c12; }
+        .stock-number.stock-critical { color: #e74c3c; }
+        .stock-number.stock-empty { color: #95a5a6; }
+        .stock-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        .stock-badge {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 5px;
+            display: inline-block;
+        }
+        .stock-badge.ok { background: #d4edda; color: #155724; }
+        .stock-badge.warning { background: #fff3cd; color: #856404; }
+        .stock-badge.critical { background: #f8d7da; color: #721c24; }
+        .stock-badge.empty { background: #e2e3e5; color: #383d41; }
         .prize-actions {
             display: flex;
             gap: 10px;
+            flex-direction: column;
         }
         .btn {
             padding: 10px 20px;
@@ -212,6 +246,13 @@
             border-left: 4px solid #2196f3;
             margin: 20px 0;
         }
+        .warning-box {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+        }
         .modal {
             display: none;
             position: fixed;
@@ -263,13 +304,6 @@
         }
         .status-online { background: #4caf50; color: white; }
         .status-offline { background: #ff9800; color: white; }
-        .preview-wheel {
-            width: 300px;
-            height: 300px;
-            margin: 20px auto;
-            border-radius: 50%;
-            border: 5px solid #ddd;
-        }
         .total-probability {
             padding: 15px;
             background: #fff3cd;
@@ -341,7 +375,7 @@
     <div class="container">
         <div class="header">
             <h1>⚙️ Administration - Tirage au Sort</h1>
-            <div style="color: #666; margin-top: 10px;">Optic 2000 / BLINK - Sevran - Version 3.0</div>
+            <div style="color: #666; margin-top: 10px;">Optic 2000 / BLINK - Sevran - Version 4.0 STOCKS</div>
         </div>
 
         <div class="tabs">
@@ -354,16 +388,16 @@
             <div class="card">
                 <h2>🎁 Configuration des Lots</h2>
                 <div class="info-box">
-                    ℹ️ <strong>Roue à 24 cases :</strong> Les lots seront répétés automatiquement sur la roue selon leurs pourcentages.<br>
-                    🖼️ <strong>Images :</strong> Vous pouvez ajouter une photo pour chaque lot (uploadez sur Imgur et collez l'URL).
+                    ℹ️ <strong>Roue à 24 cases :</strong> Les lots seront répétés automatiquement selon leurs pourcentages.<br>
+                    🖼️ <strong>Images :</strong> Ajoutez une photo pour chaque lot (uploadez sur Imgur).<br>
+                    📦 <strong>NOUVEAU - Stocks :</strong> Gérez les quantités disponibles. Quand un lot est épuisé, ses % vont automatiquement au lot avec le % le plus élevé !
+                </div>
+                <div class="warning-box" id="stockAlert" style="display: none;">
+                    ⚠️ <strong>Attention !</strong> Un ou plusieurs lots ont un stock faible ou épuisé.
                 </div>
                 <button class="btn-add" onclick="openPrizeModal()">➕ Ajouter un Nouveau Lot</button>
                 <div id="totalProbability" class="total-probability"></div>
                 <div class="prize-list" id="prizesList"></div>
-            </div>
-            <div class="card">
-                <h2>👁️ Prévisualisation de la Roue (24 cases)</h2>
-                <canvas id="previewWheel" class="preview-wheel" width="300" height="300"></canvas>
             </div>
         </div>
 
@@ -392,6 +426,10 @@
             <div class="card">
                 <h2>🎁 Répartition des Lots Gagnés</h2>
                 <div id="prizesDistribution"></div>
+            </div>
+            <div class="card">
+                <h2>📦 État des Stocks</h2>
+                <div id="stocksStatus"></div>
             </div>
         </div>
 
@@ -441,18 +479,25 @@
                         <small class="help-text">💡 Peut être décimal (ex: 12.5%)</small>
                     </div>
                     <div class="form-group">
+                        <label>Stock Disponible * 📦</label>
+                        <input type="number" id="prizeStock" min="0" step="1" value="10" required>
+                        <small class="help-text">💡 Quantité disponible</small>
+                    </div>
+                </div>
+                <div class="form-grid">
+                    <div class="form-group">
                         <label>Couleur *</label>
                         <input type="color" id="prizeColor" required>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Emoji / Icône *</label>
-                    <input type="text" id="prizeEmoji" placeholder="🎁" maxlength="2" required>
+                    <div class="form-group">
+                        <label>Emoji / Icône *</label>
+                        <input type="text" id="prizeEmoji" placeholder="🎁" maxlength="2" required>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>URL de l'Image (optionnel)</label>
                     <input type="url" id="prizeImage" placeholder="https://i.imgur.com/ABC123.jpg" onchange="previewImage()">
-                    <small class="help-text">💡 Uploadez sur <a href="https://imgur.com" target="_blank">Imgur</a>, puis copiez le lien de l'image</small>
+                    <small class="help-text">💡 Uploadez sur <a href="https://imgur.com" target="_blank">Imgur</a>, puis copiez le lien</small>
                     <div id="imagePreviewContainer" class="image-preview-container" style="display: none;">
                         <img id="imagePreview" class="image-preview" />
                     </div>
@@ -466,7 +511,7 @@
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, getDocs, doc, setDoc, deleteDoc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyDjLckAEhFD8UFKvbFR_YCLbWLgtU-GoFU",
@@ -520,6 +565,7 @@
                     document.getElementById('prizeName').value = prize.name;
                     document.getElementById('prizeDescription').value = prize.description;
                     document.getElementById('prizeProbability').value = prize.probability;
+                    document.getElementById('prizeStock').value = prize.stock || 0;
                     document.getElementById('prizeColor').value = prize.color;
                     document.getElementById('prizeEmoji').value = prize.emoji;
                     document.getElementById('prizeImage').value = prize.image || '';
@@ -528,6 +574,7 @@
             } else {
                 title.textContent = '➕ Ajouter un Lot';
                 document.getElementById('prizeForm').reset();
+                document.getElementById('prizeStock').value = 10;
                 document.getElementById('imagePreviewContainer').style.display = 'none';
             }
             
@@ -546,6 +593,7 @@
                 name: document.getElementById('prizeName').value,
                 description: document.getElementById('prizeDescription').value,
                 probability: parseFloat(document.getElementById('prizeProbability').value),
+                stock: parseInt(document.getElementById('prizeStock').value),
                 color: document.getElementById('prizeColor').value,
                 emoji: document.getElementById('prizeEmoji').value,
                 image: document.getElementById('prizeImage').value || ''
@@ -607,8 +655,8 @@
                 }
 
                 displayPrizes();
-                drawPreviewWheel();
                 updateTotalProbability();
+                checkStockAlerts();
             } catch (error) {
                 console.error('Erreur chargement lots:', error);
             }
@@ -616,9 +664,9 @@
 
         async function createDefaultPrizes() {
             const defaultPrizes = [
-                { name: "Petit Cadeau", description: "Un petit cadeau surprise !", probability: 15, color: "#ff6b6b", emoji: "🎁", image: "" },
-                { name: "Bon 30€", description: "Bon d'achat 30€ pour lunettes de soleil (min. 170€)", probability: 35, color: "#4ecdc4", emoji: "🕶️", image: "" },
-                { name: "Bon 50€", description: "Bon d'achat 50€ pour lunettes optiques (min. 250€)", probability: 50, color: "#ffd93d", emoji: "👓", image: "" }
+                { name: "Petit Cadeau", description: "Un petit cadeau surprise !", probability: 15, stock: 10, color: "#ff6b6b", emoji: "🎁", image: "" },
+                { name: "Bon 30€", description: "Bon d'achat 30€ pour lunettes de soleil (min. 170€)", probability: 35, stock: 50, color: "#4ecdc4", emoji: "🕶️", image: "" },
+                { name: "Bon 50€", description: "Bon d'achat 50€ pour lunettes optiques (min. 250€)", probability: 50, stock: 30, color: "#ffd93d", emoji: "👓", image: "" }
             ];
 
             for (const prize of defaultPrizes) {
@@ -628,14 +676,41 @@
             loadPrizes();
         }
 
+        function getStockClass(stock) {
+            if (stock === 0) return 'stock-empty';
+            if (stock < 5) return 'stock-critical';
+            if (stock < 10) return 'stock-warning';
+            return 'stock-ok';
+        }
+
+        function getStockBadge(stock) {
+            if (stock === 0) return { class: 'empty', text: '❌ Épuisé' };
+            if (stock < 5) return { class: 'critical', text: '⚠️ Stock critique' };
+            if (stock < 10) return { class: 'warning', text: '⚡ Stock faible' };
+            return { class: 'ok', text: '✅ Bon stock' };
+        }
+
+        function checkStockAlerts() {
+            const hasLowStock = prizes.some(p => p.stock < 5);
+            const alertBox = document.getElementById('stockAlert');
+            if (hasLowStock) {
+                alertBox.style.display = 'block';
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
         function displayPrizes() {
             const container = document.getElementById('prizesList');
             container.innerHTML = '';
 
             prizes.forEach(prize => {
                 const casesCount = Math.round((prize.probability / 100) * 24);
+                const stockClass = getStockClass(prize.stock || 0);
+                const stockBadge = getStockBadge(prize.stock || 0);
+                
                 const item = document.createElement('div');
-                item.className = 'prize-item';
+                item.className = 'prize-item' + (prize.stock === 0 ? ' out-of-stock' : '');
                 item.innerHTML = `
                     <div class="prize-visual">
                         <div class="prize-color-preview" style="background: ${prize.color};">
@@ -649,9 +724,14 @@
                         <div class="prize-probability">Probabilité : ${prize.probability}% → ${casesCount} cases sur 24</div>
                         ${prize.image ? '<div style="color: #27ae60; font-size: 0.9em; margin-top: 5px;">✅ Image configurée</div>' : ''}
                     </div>
+                    <div class="stock-info">
+                        <div class="stock-number ${stockClass}">${prize.stock || 0}</div>
+                        <div class="stock-label">en stock</div>
+                        <div class="stock-badge ${stockBadge.class}">${stockBadge.text}</div>
+                    </div>
                     <div class="prize-actions">
-                        <button class="btn btn-primary" onclick="openPrizeModal('${prize.id}')">✏️</button>
-                        <button class="btn btn-danger" onclick="deletePrize('${prize.id}')">🗑️</button>
+                        <button class="btn btn-primary" onclick="openPrizeModal('${prize.id}')">✏️ Modifier</button>
+                        <button class="btn btn-danger" onclick="deletePrize('${prize.id}')">🗑️ Supprimer</button>
                     </div>
                 `;
                 container.appendChild(item);
@@ -678,63 +758,6 @@
             
             container.className = className;
             container.textContent = message;
-        }
-
-        function drawPreviewWheel() {
-            const canvas = document.getElementById('previewWheel');
-            const ctx = canvas.getContext('2d');
-            const centerX = canvas.width / 2;
-            const centerY = canvas.height / 2;
-            const radius = canvas.width / 2 - 10;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const wheelSlices = createWheelSlices(prizes, 24);
-            const sliceAngle = (2 * Math.PI) / 24;
-            
-            wheelSlices.forEach((prize, index) => {
-                const startAngle = index * sliceAngle;
-                const endAngle = startAngle + sliceAngle;
-                
-                ctx.beginPath();
-                ctx.moveTo(centerX, centerY);
-                ctx.arc(centerX, centerY, radius, startAngle, endAngle);
-                ctx.closePath();
-                ctx.fillStyle = prize.color;
-                ctx.fill();
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.rotate(startAngle + sliceAngle / 2);
-                ctx.textAlign = 'center';
-                ctx.fillStyle = 'white';
-                ctx.font = 'bold 12px Arial';
-                ctx.fillText(prize.emoji, radius * 0.7, 5);
-                ctx.restore();
-            });
-        }
-
-        function createWheelSlices(prizes, totalSlices) {
-            const slices = [];
-            prizes.forEach(prize => {
-                const count = Math.round((prize.probability / 100) * totalSlices);
-                for (let i = 0; i < count; i++) {
-                    slices.push(prize);
-                }
-            });
-            
-            while (slices.length < totalSlices) slices.push(prizes[0]);
-            while (slices.length > totalSlices) slices.pop();
-            
-            for (let i = slices.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [slices[i], slices[j]] = [slices[j], slices[i]];
-            }
-            
-            return slices;
         }
 
         async function loadStatistics() {
@@ -775,6 +798,30 @@
                     `;
                     container.appendChild(bar);
                 });
+
+                // Afficher l'état des stocks
+                const stocksContainer = document.getElementById('stocksStatus');
+                stocksContainer.innerHTML = '';
+                
+                prizes.forEach(prize => {
+                    const stockClass = getStockClass(prize.stock || 0);
+                    const wonCount = prizeCount[prize.name] || 0;
+                    const remaining = (prize.stock || 0);
+                    
+                    const stockBar = document.createElement('div');
+                    stockBar.style.marginBottom = '15px';
+                    stockBar.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                            <strong>${prize.emoji} ${prize.name}</strong>
+                            <span class="stock-number ${stockClass}" style="font-size: 1.2em;">${remaining} restants (${wonCount} gagnés)</span>
+                        </div>
+                        <div style="background: #ddd; height: 30px; border-radius: 5px; overflow: hidden;">
+                            <div style="background: ${prize.stock === 0 ? '#95a5a6' : '#27ae60'}; height: 100%; width: ${remaining > 0 ? Math.max(5, (remaining / (remaining + wonCount)) * 100) : 0}%; transition: width 0.5s;"></div>
+                        </div>
+                    `;
+                    stocksContainer.appendChild(stockBar);
+                });
+
             } catch (error) {
                 console.error('Erreur stats:', error);
             }
