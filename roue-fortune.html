@@ -526,7 +526,7 @@
     
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, query, where, getDocs, addDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getFirestore, collection, query, where, getDocs, addDoc, updateDoc, doc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
         const firebaseConfig = {
             apiKey: "AIzaSyDjLckAEhFD8UFKvbFR_YCLbWLgtU-GoFU",
@@ -549,15 +549,19 @@
         async function loadPrizes() {
             try {
                 const snapshot = await getDocs(collection(db, 'prizes'));
-                prizes = snapshot.docs.map(doc => ({
+                const allPrizes = snapshot.docs.map(doc => ({
                     id: doc.id,
-                    ...doc.data()
+                    ...doc.data(),
+                    stock: doc.data().stock !== undefined ? doc.data().stock : 999
                 }));
 
-                console.log('✅ Lots chargés:', prizes);
+                // Filtrer les lots avec stock > 0
+                prizes = allPrizes.filter(prize => prize.stock > 0);
+
+                console.log('✅ Lots chargés:', allPrizes.length, 'total,', prizes.length, 'disponibles');
                 
                 if (prizes.length === 0) {
-                    showError("⚠️ Aucun lot configuré. Veuillez contacter l'administrateur.");
+                    showError("⚠️ Tous les lots sont épuisés ! Contactez l'administrateur.");
                     return false;
                 }
 
@@ -572,15 +576,36 @@
         }
 
         function createWheelSlices(prizes, totalSlices) {
+            // Filtrer les lots disponibles (stock > 0)
+            const availablePrizes = prizes.filter(p => p.stock > 0);
+            
+            if (availablePrizes.length === 0) {
+                console.error('❌ Aucun lot disponible');
+                return [];
+            }
+            
+            // Recalculer les probabilités pour les lots disponibles
+            const totalProb = availablePrizes.reduce((sum, p) => sum + p.probability, 0);
+            const adjustedPrizes = availablePrizes.map(p => ({
+                ...p,
+                adjustedProbability: (p.probability / totalProb) * 100
+            }));
+            
+            console.log('📊 Probabilités ajustées:', adjustedPrizes.map(p => ({
+                name: p.name,
+                original: p.probability,
+                adjusted: p.adjustedProbability.toFixed(2)
+            })));
+            
             const slices = [];
-            prizes.forEach(prize => {
-                const count = Math.round((prize.probability / 100) * totalSlices);
+            adjustedPrizes.forEach(prize => {
+                const count = Math.round((prize.adjustedProbability / 100) * totalSlices);
                 for (let i = 0; i < count; i++) {
                     slices.push(prize);
                 }
             });
             
-            while (slices.length < totalSlices) slices.push(prizes[0]);
+            while (slices.length < totalSlices) slices.push(adjustedPrizes[0]);
             while (slices.length > totalSlices) slices.pop();
             
             for (let i = slices.length - 1; i > 0; i--) {
@@ -744,6 +769,45 @@
             });
         }
 
+        // 📊 REDISTRIBUTION AUTOMATIQUE DES PROBABILITÉS
+        async function redistributeProbabilities(exhaustedPrizeId, exhaustedProbability) {
+            try {
+                console.log(`📊 Redistribution des ${exhaustedProbability}% du lot épuisé...`);
+                
+                // Récupérer tous les lots avec stock > 0
+                const snapshot = await getDocs(collection(db, 'prizes'));
+                const availablePrizes = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(p => p.id !== exhaustedPrizeId && (p.stock > 0 || p.stock === undefined));
+                
+                if (availablePrizes.length === 0) {
+                    console.log('⚠️ Aucun lot disponible pour redistribution');
+                    alert('⚠️ Tous les lots sont épuisés ! Contactez l\'administrateur.');
+                    return;
+                }
+                
+                // Trouver le lot avec le % le plus élevé
+                const highestProbPrize = availablePrizes.reduce((max, p) => 
+                    p.probability > max.probability ? p : max
+                );
+                
+                // Ajouter le % du lot épuisé au lot avec le % le plus élevé
+                const newProbability = highestProbPrize.probability + exhaustedProbability;
+                
+                await updateDoc(doc(db, 'prizes', highestProbPrize.id), {
+                    probability: newProbability
+                });
+                
+                console.log(`✅ ${exhaustedProbability}% redistribués vers "${highestProbPrize.name}": ${highestProbPrize.probability}% → ${newProbability}%`);
+                
+                // Recharger les lots pour la prochaine participation
+                await loadPrizes();
+                
+            } catch (error) {
+                console.error('❌ Erreur redistribution:', error);
+            }
+        }
+
         async function showPrize(prize) {
             const code = `NOEL-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
@@ -760,6 +824,19 @@
                     emailSent: false
                 });
                 console.log("✅ Participation enregistrée");
+                
+                // 📦 DÉCRÉMENTER LE STOCK
+                const newStock = (prize.stock || 0) - 1;
+                await updateDoc(doc(db, 'prizes', prize.id), {
+                    stock: newStock
+                });
+                console.log(`📦 Stock décrémenté pour ${prize.name}: ${prize.stock} → ${newStock}`);
+                
+                // 📊 SI STOCK = 0, REDISTRIBUER LES %
+                if (newStock === 0) {
+                    console.log(`⚠️ Stock épuisé pour ${prize.name}. Redistribution en cours...`);
+                    await redistributeProbabilities(prize.id, prize.probability);
+                }
                 
                 // 📧 ENVOI D'EMAIL AVEC EMAILJS 📧
                 try {
