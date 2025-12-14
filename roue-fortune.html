@@ -6,35 +6,42 @@
     <title>🎄 Tirage au Sort - Optic 2000/BLINK</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
+        html, body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
             font-family: 'Arial', sans-serif;
+        }
+        body {
             background: linear-gradient(135deg, #1a472a 0%, #8b0000 100%);
-            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden;
             position: relative;
         }
         .snowflake {
             position: absolute;
             top: -10px;
             color: white;
-            font-size: 1.5em;
-            opacity: 0.8;
+            font-size: 1em;
+            opacity: 0.6;
             animation: fall linear infinite;
             z-index: 1;
+            pointer-events: none;
         }
         @keyframes fall { to { transform: translateY(100vh); } }
         .container {
             background: rgba(255, 255, 255, 0.95);
-            border-radius: 30px;
-            padding: 40px;
-            max-width: 600px;
-            width: 90%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border-radius: 20px;
+            padding: 2vh 3vw;
+            max-width: 900px;
+            width: 90vw;
+            height: 92vh;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
             position: relative;
             z-index: 10;
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         .btn-home {
             position: absolute;
@@ -56,26 +63,26 @@
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
         }
-        .header { text-align: center; margin-bottom: 30px; }
+        .header { text-align: center; margin-bottom: 2vh; }
         .header h1 {
             color: #8b0000;
-            font-size: 2.5em;
-            margin-bottom: 10px;
+            font-size: clamp(1.5em, 4vh, 2.2em);
+            margin-bottom: 0.5vh;
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
         .header .subtitle {
             color: #1a472a;
-            font-size: 1.2em;
+            font-size: clamp(0.9em, 2vh, 1.1em);
             font-weight: bold;
         }
         .form-screen { display: block; }
-        .form-group { margin-bottom: 25px; }
+        .form-group { margin-bottom: 2vh; }
         .form-group label {
             display: block;
             color: #333;
             font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 1.1em;
+            margin-bottom: 0.5vh;
+            font-size: clamp(0.9em, 1.8vh, 1em);
         }
         .form-group input {
             width: 100%;
@@ -161,9 +168,9 @@
         .wheel-screen { display: none; text-align: center; }
         .wheel-container {
             position: relative;
-            width: 450px;
-            height: 450px;
-            margin: 30px auto;
+            width: min(60vh, 80vw);
+            height: min(60vh, 80vw);
+            margin: 2vh auto;
         }
         #wheelCanvas {
             width: 100%;
