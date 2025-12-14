@@ -610,6 +610,9 @@
                 const prizeId = editingPrizeId || Date.now().toString();
                 await setDoc(doc(db, 'prizes', prizeId), prizeData);
                 
+                // 🔄 RECALCUL AUTOMATIQUE DES % POUR ARRIVER À 100%
+                await normalizeAllProbabilities();
+                
                 alert('✅ Lot sauvegardé avec succès !');
                 closePrizeModal();
                 loadPrizes();
@@ -647,6 +650,62 @@
                 alert('❌ Erreur lors de la suppression : ' + error.message);
             }
         };
+
+        // 🔄 FONCTION DE NORMALISATION AUTOMATIQUE DES %
+        async function normalizeAllProbabilities() {
+            try {
+                // Récupérer tous les lots
+                const snapshot = await getDocs(collection(db, 'prizes'));
+                const allPrizes = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                if (allPrizes.length === 0) return;
+
+                // Calculer le total actuel
+                const total = allPrizes.reduce((sum, p) => sum + p.probability, 0);
+
+                // Si le total n'est pas 100%, recalculer
+                if (Math.abs(total - 100) > 0.01) {
+                    console.log(`📊 Total actuel: ${total.toFixed(2)}% → Normalisation à 100%...`);
+                    
+                    const ratio = 100 / total;
+                    let newTotal = 0;
+                    
+                    // Recalculer chaque lot proportionnellement
+                    for (let i = 0; i < allPrizes.length; i++) {
+                        const prize = allPrizes[i];
+                        let newProb;
+                        
+                        // Pour le dernier lot, ajuster pour arriver exactement à 100
+                        if (i === allPrizes.length - 1) {
+                            newProb = 100 - newTotal;
+                        } else {
+                            newProb = Math.round((prize.probability * ratio) * 100) / 100;
+                            newTotal += newProb;
+                        }
+                        
+                        console.log(`  ${prize.name}: ${prize.probability.toFixed(2)}% → ${newProb.toFixed(2)}%`);
+                        
+                        // Mettre à jour dans Firebase
+                        await updateDoc(doc(db, 'prizes', prize.id), {
+                            probability: newProb
+                        });
+                    }
+                    
+                    console.log(`✅ Normalisation terminée ! Total = 100%`);
+                    
+                    // Afficher un message à l'utilisateur
+                    if (Math.abs(total - 100) > 1) {
+                        alert(`📊 Les probabilités ont été automatiquement ajustées de ${total.toFixed(1)}% à 100% pour garantir une répartition correcte.`);
+                    }
+                }
+                
+            } catch (error) {
+                console.error('❌ Erreur normalisation:', error);
+            }
+        }
 
         async function loadPrizes() {
             try {
